@@ -1,5 +1,5 @@
 # This example shows how to construct a simple Markdown AST with the help of the @ast macro
-using MarkdownAST: @ast, Document, Paragraph, Heading, Link
+using MarkdownAST: MarkdownAST, @ast, Document, Paragraph, Heading, Link
 
 doc = @ast Document() do
     Heading(1) do

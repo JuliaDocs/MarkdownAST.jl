@@ -5,7 +5,7 @@ function showast(io::IO, node::Node)
 end
 function _showast(io::IO, node::Node; indent = 0)
     prefix = ' '^(2*indent)
-    print(io, prefix, node[])
+    print(io, prefix, node.element)
     if haschildren(node)
         println(io, " do")
         for child in children(node)

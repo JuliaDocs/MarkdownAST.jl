@@ -6,10 +6,10 @@
 
 Implements a linked list type representation of a Markdown abstract syntax tree, where each
 node contains pointers to the children and parent nodes, to make it possible to easily
-traverse the whole tree in any direction. The exact nature of each node in the AST is
-represented with an instance of some [`AbstractElement`](@ref) subtype (see:
-[`getindex`](@ref getindex(::Node)), [`setindex!`](@ref setindex!(::Node)), and the `Node`
-type acts  as a container that links the different nodes together.
+traverse the whole tree in any direction. Each node also contains an "element", which is an
+instance of some [`AbstractElement`](@ref) subtype and can be accesses via the `.element`
+property, and contains the semantic information about the node (e.g. wheter it is a list or
+a paragraph).
 
 Optionally, each node can also store additional meta information, which will be an object of
 type `M` (see also [`meta`](@ref), [`meta!`](@ref)). By default, the node does not contain
@@ -18,14 +18,14 @@ any extra meta information and `M = Nothing`.
 # Constructors
 
 ```julia
-Node(c :: AbstractElement)
+Node(element :: AbstractElement)
 ```
 
 Constructs a simple standalone node (not part of any tree) without any additional metadata
 (`M = Nothing`) containing the Markdown AST element `c`.
 
 ```julia
-Node{M}(c :: AbstractElement, meta :: M)
+Node{M}(element :: AbstractElement, meta :: M)
 ```
 
 Constructs a simple standalone node (not part of any tree) with the meta information `meta`,
@@ -33,20 +33,25 @@ containing the Markdown AST element `c`.
 
 # Extended help
 
-The fields of a [`Node`](@ref) object should not be accessed directly. Rather, there are
-various methods to query and modify a Markdown AST:
+There are various properties that can be used to access the details of a node. Many of them
+can not be set directly though, as that could lead to an inconsistent tree. Similarly, the
+underlying fields of the struct should not be accessed directly.
+
+- `:element :: T where {T <: AbstractElement}`: can be used to access or set the _element_
+  corresponding to the node.
+
+In addition, there are other functions and methods that can be used to work with nodes and
+trees:
 
 * Querying information about the node: [`haschildren`](@ref)
 * For accessing neighboring nodes: [`next`](@ref), [`previous`](@ref), [`parent`](@ref),
   [`children`](@ref)
 * To add new nodes as children: [`push!`](@ref), [`pushfirst!`](@ref),
   [`insert_after!`](@ref), [`insert_before!`](@ref)
-* To access or modify the [`AbstractElement`](@ref) corresponding to a node, use the
-  `node[]` syntax: [`getindex`](@ref getindex(::Node)), [`setindex!`](@ref setindex!(::Node))
 * To access or modify the extra metadata: [`meta`](@ref), [`meta!`](@ref)
 """
 mutable struct Node{M}
-    c :: AbstractElement
+    t :: AbstractElement
     parent :: Union{Node{M}, Nothing}
     first_child :: Union{Node{M}, Nothing}
     last_child :: Union{Node{M}, Nothing}
@@ -54,39 +59,60 @@ mutable struct Node{M}
     nxt :: Union{Node{M}, Nothing}
     meta :: M
 
-    function Node{M}(c::AbstractElement, meta::M) where M
-        new{M}(c, nothing, nothing, nothing, nothing, nothing, meta)
+    function Node{M}(element::AbstractElement, meta::M) where M
+        new{M}(element, nothing, nothing, nothing, nothing, nothing, meta)
     end
 end
-Node(c::AbstractElement) = Node{Nothing}(c, nothing)
+Node(element::AbstractElement) = Node{Nothing}(element, nothing)
+
+Base.propertynames(::Node) = (
+    :element, :children, :next, :previous, :parent,
+)
+
+function Base.getproperty(node::Node, name::Symbol)
+    if name === :element
+        getfield(node, :t)
+    elseif name === :children
+        children(node)
+    elseif name === :next
+        getfield(node, :nxt)
+    elseif name === :previous
+        getfield(node, :prv)
+    elseif name === :parent
+        getfield(node, :parent)
+    else
+        # TODO: error("type Node does not have property $(name)")
+        @debug "Accessing private field $(name) of Node" stacktrace()
+        getfield(node, name)
+    end
+end
+
+function Base.setproperty!(node::Node, name::Symbol, x)
+    if name === :element
+        setfield!(node, :t, x)
+    elseif name in propertynames(node)
+        # TODO: error("Unable to set property $(name) for Node")
+        @debug "Setting private field :$(name) of Node" stacktrace()
+        setfield!(node, name, x)
+    else
+        # TODO: error("type Node does not have property $(name)")
+        @debug "Accessing private field :$(name) of Node" stacktrace()
+        setfield!(node, name, x)
+    end
+end
 
 function Base.show(io::IO, node::Node{M}) where M
     # If the type metadata type is Nothing, we'll omit
     if M === Nothing
         print(io, "Node(")
-        show(io, node[])
+        show(io, node.element)
         print(io, ")")
     else
         print(io, "Node{", M, "}(")
-        show(io, node[])
+        show(io, node.element)
     end
     print(io, ")")
 end
-
-"""
-    Base.getindex(node::Node) -> AbstractElement
-
-Returns the Markdown AST element corresponding to `node` in the AST.
-"""
-Base.getindex(node::Node) = node.c
-
-"""
-    Base.setindex!(node::Node, c::AbstractElement) -> AbstractElement
-
-Updates the Markdown AST element corresponding to `node` in the AST, setting it to `c`.
-Returns the new element `c`.
-"""
-Base.setindex!(node::Node, c::AbstractElement) = (node.c = c)
 
 # Accessor functions for neighboring nodes
 """
