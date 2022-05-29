@@ -37,15 +37,20 @@ There are various properties that can be used to access the details of a node. M
 can not be set directly though, as that could lead to an inconsistent tree. Similarly, the
 underlying fields of the struct should not be accessed directly.
 
-- `:element :: T where {T <: AbstractElement}`: can be used to access or set the _element_
-  corresponding to the node.
+- `.element :: T where {T <: AbstractElement}`: can be used to access or set the _element_
+  corresponding to the node
+- `.next :: Union{Node{M},Nothing}`: access the next child node after this one, with the
+  value set to `nothing` if there is no next child
+- `.previous :: Union{Node{M},Nothing}`: access the previous child node before this one,
+  with the value set to `nothing` if there is no such node
+- `.parent :: Union{Node{M},Nothing}`: access the parent node of this node, with the value
+  set to `nothing` if the node does not have a parent
 
 In addition, there are other functions and methods that can be used to work with nodes and
 trees:
 
 * Querying information about the node: [`haschildren`](@ref)
-* For accessing neighboring nodes: [`next`](@ref), [`previous`](@ref), [`parent`](@ref),
-  [`children`](@ref)
+* For accessing neighboring nodes: [`children`](@ref)
 * To add new nodes as children: [`push!`](@ref), [`pushfirst!`](@ref),
   [`insert_after!`](@ref), [`insert_before!`](@ref)
 * To access or modify the extra metadata: [`meta`](@ref), [`meta!`](@ref)
@@ -115,32 +120,6 @@ function Base.show(io::IO, node::Node{M}) where M
 end
 
 # Accessor functions for neighboring nodes
-"""
-    next(node::Node) -> Union{Node, Nothing}
-
-Returns the next node on the same level, or `nothing` if this is the last node on this
-level.
-
-See also: [`previous`](@ref).
-"""
-next(node::Node) = node.nxt
-
-"""
-    previous(node::Node) -> Union{Node, Nothing}
-
-Returns the previous node on the same level, or `nothing` if this is the first node on this
-level.
-
-See also: [`next`](@ref).
-"""
-previous(node::Node) = node.prv
-
-"""
-    parent(node::Node) -> Union{Node, Nothing}
-
-Returns the parent node, or `nothing` if `node` is a root node.
-"""
-parent(node::Node) = node.parent
 
 """
     children(node::Node)
@@ -161,12 +140,12 @@ function Base.length(it::ChildrenIterator)
     node = it.node
     while !isnothing(node)
         len += 1
-        node = next(node)
+        node = node.next
     end
     return len
 end
 function Base.iterate(it::ChildrenIterator{T}, state::Union{T,Nothing} = nothing) where {T <: Node}
-    nextnode = isnothing(state) ? it.node : next(state)
+    nextnode = isnothing(state) ? it.node : state.next
     isnothing(nextnode) ? nothing : (nextnode, nextnode)
 end
 function Base.last(it::ChildrenIterator)
@@ -327,14 +306,14 @@ function insert_before!(node::T, sibling::T) where {T <: Node}
     @assert !isrootnode(node)
     # If this node is the first node, then we can prepend the sibling as a child
     # to the parent node. Otherwise, we just insert it after the previous node.
-    if isnothing(previous(node))
-        pushfirst!(parent(node), sibling)
+    if isnothing(node.previous)
+        pushfirst!(node.parent, sibling)
     else
-        insert_after!(previous(node), sibling)
+        insert_after!(node.previous, sibling)
     end
     return node
 end
 
 # Check if this is a root node. Next and previous should also be nothing, but this is not
 # enforced. This function is currently not part of the public API.
-isrootnode(node::Node) = isnothing(parent(node))
+isrootnode(node::Node) = isnothing(node.parent)

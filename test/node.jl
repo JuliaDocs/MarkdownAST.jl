@@ -1,5 +1,5 @@
 using MarkdownAST: MarkdownAST,
-    Node, parent, next, previous, children, haschildren, @ast,
+    Node, children, haschildren, @ast,
     Document, Paragraph, BlockQuote, CodeBlock, HTMLBlock
 using Test
 
@@ -30,9 +30,9 @@ _startswith(prefix) = s -> startswith(s, prefix)
     # Construct a simple tree:
     root = Node(Document())
     # Test various accessor methods on an isolated node:
-    @test parent(root) === nothing
-    @test next(root) === nothing
-    @test previous(root) === nothing
+    @test root.parent === nothing
+    @test root.next === nothing
+    @test root.next === nothing
     @test length(children(root)) == 0
     @test collect(children(root)) == Node[]
     @test haschildren(root) === false
@@ -86,15 +86,15 @@ _startswith(prefix) = s -> startswith(s, prefix)
         # first child
         @test cs[1].element isa Paragraph
         @test length(children(cs[1])) == 1
-        @test parent(cs[1]) === tree
-        @test previous(cs[1]) === nothing
-        @test next(cs[1]) === cs[2]
+        @test cs[1].parent === tree
+        @test cs[1].previous === nothing
+        @test cs[1].next === cs[2]
         # second child
         @test cs[2].element isa BlockQuote
         @test length(children(cs[2])) == 3
-        @test parent(cs[2]) == tree
-        @test previous(cs[2]) === cs[1]
-        @test next(cs[2]) === cs[3]
+        @test cs[2].parent == tree
+        @test cs[2].previous === cs[1]
+        @test cs[2].next === cs[3]
         let cs = collect(children(cs[2]))
             @test cs[1].element isa MarkdownAST.Text
             @test cs[2].element isa MarkdownAST.Text
@@ -107,8 +107,8 @@ _startswith(prefix) = s -> startswith(s, prefix)
         @test cs[3].element isa CodeBlock
         @test haschildren(cs[3]) === false
         @test length(children(cs[3])) == 0
-        @test parent(cs[3]) == tree
-        @test previous(cs[3]) === cs[2]
-        @test next(cs[3]) === nothing
+        @test cs[3].parent == tree
+        @test cs[3].previous === cs[2]
+        @test cs[3].next === nothing
     end
 end
