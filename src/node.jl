@@ -12,8 +12,8 @@ property, and contains the semantic information about the node (e.g. wheter it i
 a paragraph).
 
 Optionally, each node can also store additional meta information, which will be an object of
-type `M` (see also [`meta`](@ref), [`meta!`](@ref)). By default, the node does not contain
-any extra meta information and `M = Nothing`.
+type `M` (see also the `.meta` property). By default, the node does not contain any extra
+meta information and `M = Nothing`.
 
 # Constructors
 
@@ -37,6 +37,7 @@ There are various properties that can be used to access the details of a node. M
 can not be set directly though, as that could lead to an inconsistent tree. Similarly, the
 underlying fields of the struct should not be accessed directly.
 
+- `.meta :: M`: can be used to access or set the extra meta information of the node.
 - `.element :: T where {T <: AbstractElement}`: can be used to access or set the _element_
   corresponding to the node
 - `.next :: Union{Node{M},Nothing}`: access the next child node after this one, with the
@@ -53,7 +54,6 @@ trees:
 * For accessing neighboring nodes: [`children`](@ref)
 * To add new nodes as children: [`push!`](@ref), [`pushfirst!`](@ref),
   [`insert_after!`](@ref), [`insert_before!`](@ref)
-* To access or modify the extra metadata: [`meta`](@ref), [`meta!`](@ref)
 """
 mutable struct Node{M}
     t :: AbstractElement
@@ -71,7 +71,7 @@ end
 Node(element::AbstractElement) = Node{Nothing}(element, nothing)
 
 Base.propertynames(::Node) = (
-    :element, :children, :next, :previous, :parent,
+    :element, :children, :next, :previous, :parent, :meta,
 )
 
 function Base.getproperty(node::Node, name::Symbol)
@@ -85,6 +85,8 @@ function Base.getproperty(node::Node, name::Symbol)
         getfield(node, :prv)
     elseif name === :parent
         getfield(node, :parent)
+    elseif name === :meta
+        getfield(node, :meta)
     else
         # TODO: error("type Node does not have property $(name)")
         @debug "Accessing private field $(name) of Node" stacktrace()
@@ -95,6 +97,8 @@ end
 function Base.setproperty!(node::Node, name::Symbol, x)
     if name === :element
         setfield!(node, :t, x)
+    elseif name === :meta
+        setfield!(node, :meta, x)
     elseif name in propertynames(node)
         # TODO: error("Unable to set property $(name) for Node")
         @debug "Setting private field :$(name) of Node" stacktrace()
@@ -162,20 +166,6 @@ end
 Returns `true` if `node` has any children nodes and `false` otherwise.
 """
 haschildren(node::Node) = !isnothing(node.first_child)
-
-"""
-    meta(node::Node{M}) -> M
-
-Returns the object storing the extra meta information of the node.
-"""
-meta(node::Node) = node.meta
-
-"""
-    meta!(node::Node{M}, meta::M) -> M
-
-Sets the extra meta information of `node` to `meta`, and returns the new meta object.
-"""
-meta!(node::Node{M}, meta::M) where M = (node.meta = meta)
 
 """
     unlink!(node::Node) -> Node
