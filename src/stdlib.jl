@@ -10,7 +10,7 @@ function Base.convert(::Type{Node}, md::Markdown.MD)
     node = Node(Document())
     for md_child in md.content
         childnode = _convert_block(md_child)
-        push!(node, childnode)
+        push!(node.children, childnode)
     end
     return node
 end
@@ -19,7 +19,7 @@ function _convert(c::AbstractElement, child_convert_fn, md_children)
     node = Node(c)
     for md_child in md_children
         childnode = child_convert_fn(md_child)
-        push!(node, childnode)
+        push!(node.children, childnode)
     end
     return node
 end
@@ -30,7 +30,9 @@ function _convert_block(block::Markdown.Header{N}) where N
     c = Heading(N)
     if block.text isa AbstractString
         # TODO: If isempty(block.text), should we omit adding any children?
-        push!(Node(c), Node(Text(block.text)))
+        headingnode = Node(c)
+        push!(headingnode.children, Node(Text(block.text)))
+        headingnode
     else
         _convert(c, _convert_inline, block.text)
     end
@@ -48,7 +50,7 @@ function _convert_block(b::Markdown.List)
     orderedstart = (b.ordered == -1) ? nothing : b.ordered
     list = Node(List(b.ordered == -1 ? :ordered : :bullet, tight))
     for item in b.items
-        push!(list, _convert(Item(), _convert_block, item))
+        push!(list.children, _convert(Item(), _convert_block, item))
     end
     return list
 end
@@ -58,16 +60,17 @@ function _convert_block(b::Markdown.Table)
     @assert length(b.rows) >= 1
     header_row, body_rows = Iterators.peel(b.rows)
     tablenode = Node(Table(Symbol[]))
+    headernode = Node(TableHeader())
     # A MD table should always contain a header
-    headernode = push!(Node(TableHeader()), _convert_table_row(header_row))
-    push!(tablenode, headernode)
+    push!(headernode.children, _convert_table_row(header_row))
+    push!(tablenode.children, headernode)
     # If it doesn't have any more rows, then we don't append a TableBody
     if length(b.rows) >= 2
         bodynode = Node(TableBody())
         for row in body_rows
-            push!(bodynode, _convert_table_row(row))
+            push!(bodynode.children, _convert_table_row(row))
         end
-        push!(tablenode, bodynode)
+        push!(tablenode.children, bodynode)
     end
     return tablenode
 end
@@ -76,7 +79,7 @@ function _convert_table_row(row)
     for (i, cell) in enumerate(row)
         c = TableCell(:nothing, false, i)
         cellnode = _convert(c, _convert_inline, cell)
-        push!(rownode, cellnode)
+        push!(rownode.children, cellnode)
     end
     return rownode
 end
@@ -90,7 +93,9 @@ function _convert_inline(s::Markdown.Link)
     c = Link(s.url, "")
     if s.text isa AbstractString
         # Autolinks (the `<URL>` syntax) yield Link objects where .text is just a String
-        push!(Node(c), Node(Text(s.text)))
+        linknode = Node(c)
+        push!(linknode.children, Node(Text(s.text)))
+        linknode
     else
         _convert(c, _convert_inline, s.text)
     end

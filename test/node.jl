@@ -1,6 +1,7 @@
 using MarkdownAST: MarkdownAST,
-    Node, children, haschildren, @ast,
-    Document, Paragraph, BlockQuote, CodeBlock, HTMLBlock
+    Node, haschildren, @ast,
+    Document, Paragraph, BlockQuote, CodeBlock, HTMLBlock,
+    NodeChildren
 using Test
 
 # Compat-ish.. startswith(prefix) was added in 1.5:
@@ -33,34 +34,34 @@ _startswith(prefix) = s -> startswith(s, prefix)
     @test root.parent === nothing
     @test root.next === nothing
     @test root.next === nothing
-    @test length(children(root)) == 0
-    @test collect(children(root)) == Node[]
+    @test length(root.children) == 0
+    @test collect(root.children) == Node[]
     @test haschildren(root) === false
     let n1 = Node(Paragraph())
-        push!(root, n1)
-        @test length(children(root)) == 1
-        @test collect(children(root)) == Node[n1]
+        @test push!(root.children, n1) == root.children
+        @test length(root.children) == 1
+        @test collect(root.children) == Node[n1]
         @test haschildren(root) === true
         @test haschildren(n1) === false
         # Add another child
         n2 = Node(HTMLBlock(""))
-        push!(root, n2)
-        @test length(children(root)) == 2
-        @test collect(children(root)) == Node[n1, n2]
+        @test push!(root.children, n2) == root.children
+        @test length(root.children) == 2
+        @test collect(root.children) == Node[n1, n2]
         # Push the first child again. This should unlink it from the original
         # position.
-        push!(root, n1)
-        @test length(children(root)) == 2
-        @test collect(children(root)) == Node[n2, n1]
+        @test push!(root.children, n1) == root.children
+        @test length(root.children) == 2
+        @test collect(root.children) == Node[n2, n1]
         # Same as before, but for pushfirst!
         n3 = Node(Paragraph())
-        pushfirst!(root, n3)
-        @test length(children(root)) == 3
-        @test collect(children(root)) == Node[n3, n2, n1]
+        @test pushfirst!(root.children, n3) == root.children
+        @test length(root.children) == 3
+        @test collect(root.children) == Node[n3, n2, n1]
         # Unlinking with pushfirst!
-        pushfirst!(root, n2)
-        @test length(children(root)) == 3
-        @test collect(children(root)) == Node[n2, n3, n1]
+        @test pushfirst!(root.children, n2) == root.children
+        @test length(root.children) == 3
+        @test collect(root.children) == Node[n2, n3, n1]
     end
 
     # Constructing trees with the @ast macro
@@ -79,23 +80,23 @@ _startswith(prefix) = s -> startswith(s, prefix)
             containervar
         end
         @test tree.element isa Document
-        @test length(children(tree)) == 3
+        @test length(tree.children) == 3
         @test haschildren(tree) === true
         # Check the children:
-        cs = collect(children(tree))
+        cs = collect(tree.children)
         # first child
         @test cs[1].element isa Paragraph
-        @test length(children(cs[1])) == 1
+        @test length(cs[1].children) == 1
         @test cs[1].parent === tree
         @test cs[1].previous === nothing
         @test cs[1].next === cs[2]
         # second child
         @test cs[2].element isa BlockQuote
-        @test length(children(cs[2])) == 3
+        @test length(cs[2].children) == 3
         @test cs[2].parent == tree
         @test cs[2].previous === cs[1]
         @test cs[2].next === cs[3]
-        let cs = collect(children(cs[2]))
+        let cs = collect(cs[2].children)
             @test cs[1].element isa MarkdownAST.Text
             @test cs[2].element isa MarkdownAST.Text
             @test cs[3].element isa MarkdownAST.Text
@@ -106,7 +107,7 @@ _startswith(prefix) = s -> startswith(s, prefix)
         # third child
         @test cs[3].element isa CodeBlock
         @test haschildren(cs[3]) === false
-        @test length(children(cs[3])) == 0
+        @test length(cs[3].children) == 0
         @test cs[3].parent == tree
         @test cs[3].previous === cs[2]
         @test cs[3].next === nothing

@@ -88,7 +88,7 @@ function ast_expression(container, children)
     quote
         let n = $(parent_node_expr)
             for c in $(children_expr)
-                push!(n, c)
+                push!(n.children, c)
             end
             n
         end

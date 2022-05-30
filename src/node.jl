@@ -46,14 +46,36 @@ underlying fields of the struct should not be accessed directly.
   with the value set to `nothing` if there is no such node
 - `.parent :: Union{Node{M},Nothing}`: access the parent node of this node, with the value
   set to `nothing` if the node does not have a parent
+- `.children`: an iterable object that can be used to acces and modify the children of the
+  node
+
+The `.children` field is implemented with a type that in turn implemement the iteration
+interface. However, the exact type information etc. is an implementation detail, and the
+one should only rely on the following documented APIs:
+
+- The following methods are implemented for `.children`:
+  [`length`](@ref Base.length(children::NodeChildren)),
+  [`eltype`](@ref Base.eltype(::Type{NodeChildren{T}}) where T),
+  [`first`](@ref Base.first(::NodeChildren)),
+  [`last`](@ref Base.last(::NodeChildren)),
+  [`isempty`](@ref Base.isempty(::NodeChildren))
+- Appending or prepending new children to a parent node can be done with the
+  [`push!`](@ref Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}) and
+  [`pushfirst!`](@ref Base.pushfirst!(children::NodeChildren{T}, child::T) where {T <: Node})
+  methods
+
+Other ways to work with child nodes that do not directly reference `.children` are:
+
+- To add new children between others, the [`insert_after!`](@ref), [`insert_before!`](@ref)
+  functions can be used to insert new children relative to a reference child node.
+- To remove a child from a node, the [`unlink!`](@ref) function can be used on the
+  corresponding child node.
 
 In addition, there are other functions and methods that can be used to work with nodes and
 trees:
 
 * Querying information about the node: [`haschildren`](@ref)
-* For accessing neighboring nodes: [`children`](@ref)
-* To add new nodes as children: [`push!`](@ref), [`pushfirst!`](@ref),
-  [`insert_after!`](@ref), [`insert_before!`](@ref)
+* Removing a node from a tree: [`unlink!`](@ref)
 """
 mutable struct Node{M}
     t :: AbstractElement
@@ -74,11 +96,11 @@ Base.propertynames(::Node) = (
     :element, :children, :next, :previous, :parent, :meta,
 )
 
-function Base.getproperty(node::Node, name::Symbol)
+function Base.getproperty(node::Node{T}, name::Symbol) where T
     if name === :element
         getfield(node, :t)
     elseif name === :children
-        children(node)
+        NodeChildren(node)
     elseif name === :next
         getfield(node, :nxt)
     elseif name === :previous
@@ -123,49 +145,12 @@ function Base.show(io::IO, node::Node{M}) where M
     print(io, ")")
 end
 
-# Accessor functions for neighboring nodes
-
-"""
-    children(node::Node)
-
-Returns an iterator that runs, in sequence, over all the immediate children of the node.
-"""
-children(node::T) where {T <: Node} = ChildrenIterator{T}(node.first_child)
-
-# The precise types etc of the iterator of the child nodes is considered to be an
-# implementation detail. It should only be constructed by calling the relevant public APIs.
-# In practice, the argument to ChildrenIterator is simply the node where the iterator starts
-struct ChildrenIterator{T <: Node}
-    node :: Union{T, Nothing}
-end
-Base.eltype(::Type{ChildrenIterator{T}}) where T = T
-function Base.length(it::ChildrenIterator)
-    len = 0
-    node = it.node
-    while !isnothing(node)
-        len += 1
-        node = node.next
-    end
-    return len
-end
-function Base.iterate(it::ChildrenIterator{T}, state::Union{T,Nothing} = nothing) where {T <: Node}
-    nextnode = isnothing(state) ? it.node : state.next
-    isnothing(nextnode) ? nothing : (nextnode, nextnode)
-end
-function Base.last(it::ChildrenIterator)
-    local lastnode
-    for n in it
-        lastnode = n
-    end
-    return lastnode
-end
-
 """
     haschildren(node::Node) -> Bool
 
 Returns `true` if `node` has any children nodes and `false` otherwise.
 """
-haschildren(node::Node) = !isnothing(node.first_child)
+haschildren(node::Node) = !isnothing(getfield(node, :first_child))
 
 """
     unlink!(node::Node) -> Node
@@ -202,13 +187,89 @@ function unlink!(node::Node)
     return node
 end
 
-"""
-    Base.push!(node::Node, child::Node) -> Node
+# The precise types etc of the iterator of the child nodes is considered to be an
+# implementation detail. It should only be constructed by calling the relevant public APIs.
+# In practice, the argument to ChildrenIterator is simply the node where the iterator starts
+struct NodeChildren{T <: Node}
+    parent :: T
 
-Adds `child` as the last child node of `node`. If `child` is part of another tree, then
-it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the parent node.
+    NodeChildren(parent::T) where {T <: Node} = new{T}(parent)
+end
+function Base.iterate(children::NodeChildren{T}, state::Union{T,Nothing} = nothing) where {T <: Node}
+    nextnode = isnothing(state) ? getfield(children.parent, :first_child) : state.next
+    isnothing(nextnode) ? nothing : (nextnode, nextnode)
+end
+
 """
-function Base.push!(node::T, child::T) where {T <: Node}
+    eltype(node.children) = Node{M}
+
+Returns the exact `Node` type of the tree, corresponding to the type of the elements of the
+`.children` iterator.
+"""
+Base.eltype(::Type{NodeChildren{T}}) where T = T
+
+"""
+    length(node.children) -> Int
+
+Returns the number of children of `node :: Node`.
+
+As the children are stored as a linked list, this method has O(n) complexity. As such, to
+check there are any children at all, it is generally preferable to use
+[`isempty`](@ref Base.isempty(::NodeChildren)).
+"""
+function Base.length(children::NodeChildren)
+    len = 0
+    node = getfield(children.parent, :first_child)
+    while !isnothing(node)
+        len += 1
+        node = node.next
+    end
+    return len
+end
+
+"""
+    first(node.children) -> Node
+
+Returns the first child of the `node :: Node`, or throws an error if the node has no
+children.
+"""
+function Base.first(children::NodeChildren{T}) where T
+    first_child = getfield(children.parent, :first_child)
+    # Error type consistent with first(""):
+    isnothing(first_child) && throw(ArgumentError("collection must be non-empty"))
+    return first_child :: T
+end
+
+"""
+    last(node.children) -> Node
+
+Returns the last child of the `node :: Node`, or throws an error if the node has no
+children.
+"""
+function Base.last(children::NodeChildren{T}) where T
+    last_child = getfield(children.parent, :last_child)
+    # Error type consistent with first(""):
+    isnothing(last_child) && throw(ArgumentError("collection must be non-empty"))
+    return last_child :: T
+end
+
+"""
+    isemtpy(node.children) -> Bool
+
+Can be called on the `.children` field of a `node :: Node` to determine whether or not the
+node has any child nodes.
+"""
+Base.isempty(children::NodeChildren) = !haschildren(children.parent)
+
+"""
+    Base.push!(node.children, child::Node) -> Node
+
+Adds `child` as the last child node of `node :: Node`. If `child` is part of another tree,
+then it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the iterator over
+children.
+"""
+function Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}
+    node = children.parent
     # append_child
     # The child node is unlinked first
     unlink!(child)
@@ -225,16 +286,18 @@ function Base.push!(node::T, child::T) where {T <: Node}
         node.last_child = child
     end
     # Return the updated parent node
-    return node
+    return children
 end
 
 """
-    Base.pushfirst!(node::Node, child::Node) -> Node
+    Base.pushfirst!(node.children, child::Node) -> Node
 
-Adds `child` as the first child node of `node`. If `child` is part of another tree, then
-it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the parent node.
+Adds `child` as the first child node of `node :: Node`. If `child` is part of another tree,
+then it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the iterator over
+children.
 """
-function Base.pushfirst!(node::Node, child::Node)
+function Base.pushfirst!(children::NodeChildren{T}, child::T) where T
+    node = children.parent
     # prepend_child
     # The child node is unlinked first
     unlink!(child)
@@ -251,7 +314,7 @@ function Base.pushfirst!(node::Node, child::Node)
         node.last_child = child
     end
     # Return the updated parent node
-    return node
+    return children
 end
 
 """
@@ -263,7 +326,7 @@ node. If `sibling` is part of another tree, then it is unlinked from that tree f
 """
 function insert_after!(node::Node, sibling::Node)
     # Adds the sibling after this node:
-    @assert !isrootnode(node)
+    isrootnode(node) && throw(ArgumentError("the reference node must not be a root node"))
     # The sibling node is unlinked first:
     unlink!(sibling)
     # If there is a node after `node`, we point sibling to it:
@@ -293,7 +356,7 @@ root node. If `sibling` is part of another tree, then it is unlinked from that t
 """
 function insert_before!(node::T, sibling::T) where {T <: Node}
     # Fallback method for insert_before!
-    @assert !isrootnode(node)
+    isrootnode(node) && throw(ArgumentError("the reference node must not be a root node"))
     # If this node is the first node, then we can prepend the sibling as a child
     # to the parent node. Otherwise, we just insert it after the previous node.
     if isnothing(node.previous)

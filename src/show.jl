@@ -8,7 +8,7 @@ function _showast(io::IO, node::Node; indent = 0)
     print(io, prefix, node.element)
     if haschildren(node)
         println(io, " do")
-        for child in children(node)
+        for child in node.children
             _showast(io, child; indent = indent + 1)
         end
         print(io, prefix, "end")
