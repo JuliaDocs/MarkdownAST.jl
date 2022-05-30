@@ -22,6 +22,10 @@ User-defined elements must not directly inherit this type, but either
 * [`can_contain`](@ref) can be overridden to constrain what elements can be the direct
   children of another node. By default, inline container elements can contain any inline
   element and block container elements can contain any block element.
+
+* Elements that are implemented as `mutable struct`s should probably implement the equality
+  operator (`==`), to make sure that two different instances that are semantically the same
+  would be considered equal.
 """
 abstract type AbstractElement end
 
@@ -188,6 +192,7 @@ iscontainer(::Heading) = true
 # Can only contain inline elements and not block elements:
 can_contain(::Heading, ::AbstractInline) = true
 can_contain(::Heading, ::AbstractBlock) = false
+Base.:(==)(x::Heading, y::Heading) = (x.level == y.level)
 
 """
     struct Paragraph <: AbstractBlock
@@ -208,6 +213,7 @@ A leaf block representing raw HTML.
 mutable struct HTMLBlock <: AbstractBlock
     html :: String
 end
+Base.:(==)(x::HTMLBlock, y::HTMLBlock) = (x.html == y.html)
 
 """
     mutable struct CodeBlock <: AbstractBlock
@@ -224,6 +230,7 @@ mutable struct CodeBlock <: AbstractBlock
     code :: String
     # TODO: `info` shouldn't contain any backtick characters. Restrict in constructor?
 end
+Base.:(==)(x::HTMLBlock, y::HTMLBlock) = (x.info == y.info) && (x.code == y.code)
 
 # CommonMark inline containers:
 
@@ -249,6 +256,7 @@ mutable struct Link <: AbstractInline
     title :: String
 end
 iscontainer(::Link) = true
+Base.:(==)(x::Link, y::Link) = (x.destination == y.destination) && (x.title == y.title)
 
 """
     mutable struct Image <: AbstractInline
@@ -272,6 +280,7 @@ mutable struct Image <: AbstractInline
     title :: String
 end
 iscontainer(::Image) = true
+Base.:(==)(x::Image, y::Image) = (x.destination == y.destination) && (x.title == y.title)
 
 """
     mutable struct HTMLInline <: AbstractInline
@@ -291,6 +300,7 @@ HTMLInline(html::AbstractString)
 mutable struct HTMLInline <: AbstractInline
     html :: String
 end
+Base.:(==)(x::HTMLInline, y::HTMLInline) = (x.html == y.html)
 
 """
     struct Emph <: AbstractInline
@@ -326,6 +336,7 @@ Code(code::AbstractString)
 mutable struct Code <: AbstractInline
     code :: String
 end
+Base.:(==)(x::Code, y::Code) = (x.code == y.code)
 
 """
     mutable struct Text <: AbstractInline
@@ -335,6 +346,7 @@ Inline leaf element representing a simply a span of text.
 mutable struct Text <: AbstractInline
     text :: String
 end
+Base.:(==)(x::Text, y::Text) = (x.text == y.text)
 
 # Julia Markdown extensions:
 
@@ -356,6 +368,7 @@ mutable struct Admonition <: AbstractBlock
     title :: String
 end
 iscontainer(::Admonition) = true
+Base.:(==)(x::Admonition, y::Admonition) = (x.category == y.category) && (x.title == y.title)
 
 """
     mutable struct DisplayMath <: AbstractBlock
@@ -375,6 +388,7 @@ DisplayMath(math :: AbstractString)
 mutable struct DisplayMath <: AbstractBlock
     math :: String
 end
+Base.:(==)(x::DisplayMath, y::DisplayMath) = (x.math == y.math)
 
 """
     mutable struct InlineMath <: AbstractInline
@@ -394,6 +408,7 @@ InlineMath(math::String)
 mutable struct InlineMath <: AbstractInline
     math :: String
 end
+Base.:(==)(x::InlineMath, y::InlineMath) = (x.math == y.math)
 
 # TODO: In CommonMark, these were actually immutable..?
 # TODO: Does this have to contain block elements, or can it also contain inline elements
@@ -418,6 +433,7 @@ mutable struct FootnoteDefinition <: AbstractBlock
     id :: String
 end
 iscontainer(::FootnoteDefinition) = true
+Base.:(==)(x::FootnoteDefinition, y::FootnoteDefinition) = (x.id == y.id)
 
 """
     mutable struct FootnoteLink <: AbstractInline
@@ -439,6 +455,7 @@ mutable struct FootnoteLink <: AbstractInline
     # TODO: Also had this field in CommonMark:
     #rule::FootnoteRule
 end
+Base.:(==)(x::FootnoteLink, y::FootnoteLink) = (x.id == y.id)
 
 # Markdown tables:
 abstract type TableComponent <: AbstractBlock end
@@ -449,6 +466,7 @@ abstract type TableComponent <: AbstractBlock end
 mutable struct Table <: TableComponent
     spec::Vector{Symbol}
 end
+Base.:(==)(x::Table, y::Table) = (x.spec == y.spec)
 struct TableHeader <: TableComponent end
 struct TableBody <: TableComponent end
 struct TableRow <: TableComponent end
@@ -462,6 +480,7 @@ mutable struct TableCell <: TableComponent
     header :: Bool
     column :: Int
 end
+Base.:(==)(x::TableCell, y::TableCell) = (x.align == y.align) && (x.header == y.header) && (x.column == y.column)
 
 # src/extensions/interpolation.jl:struct JuliaValue <: AbstractInline
 # struct Backslash <: AbstractInline end

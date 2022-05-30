@@ -76,6 +76,8 @@ trees:
 
 * Querying information about the node: [`haschildren`](@ref)
 * Removing a node from a tree: [`unlink!`](@ref)
+* Two trees can be compared with the
+  [`==` operator](@ref Base.:(==)(x::Node{T}, y::Node{T}) where T)
 """
 mutable struct Node{M}
     t :: AbstractElement
@@ -370,3 +372,28 @@ end
 # Check if this is a root node. Next and previous should also be nothing, but this is not
 # enforced. This function is currently not part of the public API.
 isrootnode(node::Node) = isnothing(node.parent)
+
+"""
+   ==(x::Node, y::Node) -> Bool
+
+Determines if two trees are equal by recursively walking through the whole tree (if need be)
+and comparing each node. Parent nodes are ignored when comparing for equality (so that it
+would be possible to compare subtrees). If the metadata type does not match, the two trees
+are not considered equal.
+"""
+function Base.:(==)(x::Node{T}, y::Node{T}) where T
+    x.element == y.element || return false
+    x.meta == y.meta || return false
+    # Finally we compare all the children (which, of course, recursively compare their
+    # children). In principle, the first check could be length(x.children) == length(y.children),
+    # but length() here is O(n). So we pairwise iterate through the children, comparing each
+    # pair, and bailing right away if something doesn't match. However, a naive zip use
+    # doesn't handle the case where the number of children is different. Hence we lazily
+    # append a nothing to each iterator.
+    x_children_padded = Iterators.flatten((x.children, (nothing,)))
+    y_children_padded = Iterators.flatten((y.children, (nothing,)))
+    for (xc, yc) in zip(x_children_padded, y_children_padded)
+        xc == yc || return false
+    end
+    return true
+end
