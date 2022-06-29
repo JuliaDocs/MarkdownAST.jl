@@ -230,7 +230,7 @@ mutable struct CodeBlock <: AbstractBlock
     code :: String
     # TODO: `info` shouldn't contain any backtick characters. Restrict in constructor?
 end
-Base.:(==)(x::HTMLBlock, y::HTMLBlock) = (x.info == y.info) && (x.code == y.code)
+Base.:(==)(x::CodeBlock, y::CodeBlock) = (x.info == y.info) && (x.code == y.code)
 
 # CommonMark inline containers:
 
