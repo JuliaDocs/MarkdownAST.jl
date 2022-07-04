@@ -44,40 +44,6 @@ Supertype of all Markdown AST inline types.
 abstract type AbstractInline <: AbstractElement end
 
 """
-    iscontainer(::T) where {T <: AbstractElement} -> Bool
-
-Determines if the particular Markdown element is a container, meaning that is can contain
-child nodes. Adding child nodes to non-container (leaf) nodes is prohibited.
-
-By default, each user-defined element is assumed to be a leaf node by default, and each
-container node should override this method.
-"""
-function iscontainer end
-
-iscontainer(::AbstractElement) = false
-
-"""
-    can_contain(parent::AbstractElement, child::AbstractElement) -> Bool
-
-Determines if the `child` element can be a direct child of the `parent` element.
-
-This is used to constrain the types of valid children for some elements, such as for the
-elements that are only allowed to have inline child elements or to make sure that
-[`List`s](@ref List) only contain [`Item`s](@ref Item).
-
-If the `parent` element is a leaf node (`iscontainer(parent) === false`)
-"""
-function can_contain end
-
-# These methods ensure that, by default, container blocks/inlines are allowed to contain
-# any blocks/inlines (respectively):
-can_contain(parent::AbstractBlock, child::AbstractBlock) = iscontainer(parent)
-can_contain(parent::AbstractInline, child::AbstractInline) = iscontainer(parent)
-# The following method will be called if one mixed blocks and inlines (unless specifically
-# overridden):
-can_contain(parent::AbstractElement, child::AbstractElement) = false
-
-"""
     isblock(element::AbstractElement) -> Bool
 
 Determines if `element` is a block element (a subtype of [`AbstractBlock`](@ref)).
@@ -94,6 +60,38 @@ Determines if `element` is an inline element (a subtype of [`AbstractInline`](@r
 function isinline end
 isinline(::AbstractBlock) = false
 isinline(::AbstractInline) = true
+
+"""
+    iscontainer(::T) where {T <: AbstractElement} -> Bool
+
+Determines if the particular Markdown element is a container, meaning that is can contain
+child nodes. Adding child nodes to non-container (leaf) nodes is prohibited.
+
+By default, each user-defined element is assumed to be a leaf node, and each container node
+should override this method.
+"""
+function iscontainer end
+iscontainer(::AbstractElement) = false
+
+"""
+    can_contain(parent::AbstractElement, child::AbstractElement) -> Bool
+
+Determines if the `child` element can be a direct child of the `parent` element.
+
+This is used to constrain the types of valid children for some elements, such as for the
+elements that are only allowed to have inline child elements or to make sure that
+[`List`s](@ref List) only contain [`Item`s](@ref Item).
+
+If the `parent` element is a leaf node (`iscontainer(parent) === false`)
+"""
+function can_contain end
+# These methods ensure that, by default, container blocks/inlines are allowed to contain
+# any blocks/inlines (respectively):
+can_contain(parent::AbstractBlock, child::AbstractBlock) = iscontainer(parent)
+can_contain(parent::AbstractInline, child::AbstractInline) = iscontainer(parent)
+# The following method will be called if one mixed blocks and inlines (unless specifically
+# overridden):
+can_contain(parent::AbstractElement, child::AbstractElement) = false
 
 """
     struct Document <: AbstractBlock
