@@ -272,6 +272,7 @@ children.
 """
 function Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}
     node = children.parent
+    assert_can_contain(node, child)
     # append_child
     # The child node is unlinked first
     unlink!(child)
@@ -300,6 +301,7 @@ children.
 """
 function Base.pushfirst!(children::NodeChildren{T}, child::T) where T
     node = children.parent
+    assert_can_contain(node, child)
     # prepend_child
     # The child node is unlinked first
     unlink!(child)
@@ -329,6 +331,7 @@ node. If `sibling` is part of another tree, then it is unlinked from that tree f
 function insert_after!(node::Node, sibling::Node)
     # Adds the sibling after this node:
     isrootnode(node) && throw(ArgumentError("the reference node must not be a root node"))
+    assert_can_contain(node.parent, sibling)
     # The sibling node is unlinked first:
     unlink!(sibling)
     # If there is a node after `node`, we point sibling to it:
@@ -359,6 +362,7 @@ root node. If `sibling` is part of another tree, then it is unlinked from that t
 function insert_before!(node::T, sibling::T) where {T <: Node}
     # Fallback method for insert_before!
     isrootnode(node) && throw(ArgumentError("the reference node must not be a root node"))
+    assert_can_contain(node.parent, sibling)
     # If this node is the first node, then we can prepend the sibling as a child
     # to the parent node. Otherwise, we just insert it after the previous node.
     if isnothing(node.previous)
@@ -396,4 +400,9 @@ function Base.:(==)(x::Node{T}, y::Node{T}) where T
         xc == yc || return false
     end
     return true
+end
+
+function assert_can_contain(parent::T, child::T) where {T <: Node}
+    can_contain(parent.element, child.element) && return nothing
+    throw(InvalidChildException(parent.element, child.element))
 end

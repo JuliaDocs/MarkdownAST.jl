@@ -484,3 +484,8 @@ Base.:(==)(x::TableCell, y::TableCell) = (x.align == y.align) && (x.header == y.
 # struct Backslash <: AbstractInline end
 # struct SoftBreak <: AbstractInline end
 # struct LineBreak <: AbstractInline end
+
+struct InvalidChildException <: Exception
+    parent :: AbstractElement
+    child :: AbstractElement
+end
