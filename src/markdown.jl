@@ -83,14 +83,31 @@ elements that are only allowed to have inline child elements or to make sure tha
 [`List`s](@ref List) only contain [`Item`s](@ref Item).
 
 If the `parent` element is a leaf node (`iscontainer(parent) === false`)
+
+# Extended help
+
+When extending `can_contain` for custom abstract classes Markdown elements, similar to the
+[`AbstractBlock`](@ref) or [`AbstractInline`](@ref) elements classes, the second argument to
+[`can_contain`](@ref) should always be constrained exactly to `::AbstractElement`, in order
+to avoid method ambiguities. I.e. for some abstract type `AbstractT  <: AbstractElement`,
+the method should be defined as
+
+```julia
+can_contain(parent::AbstractT, child::AbstractElement) = ...
+```
+
+For concrete parent types `T`, where the first argument is constrained as `parent::T` it
+should then be fine to take advantage of multiple dispatch when implementing
+[`can_contain`](@ref).
 """
 function can_contain end
 # These methods ensure that, by default, container blocks/inlines are allowed to contain
-# any blocks/inlines (respectively):
-can_contain(parent::AbstractBlock, child::AbstractBlock) = iscontainer(parent)
-can_contain(parent::AbstractInline, child::AbstractInline) = iscontainer(parent)
-# The following method will be called if one mixed blocks and inlines (unless specifically
-# overridden):
+# any blocks/inlines (respectively). However, we need the isa() calls here because the
+# AbstractBlock and AbstractInline are abstract types.
+can_contain(parent::AbstractBlock, child::AbstractElement) = iscontainer(parent) && isa(child, AbstractBlock)
+can_contain(parent::AbstractInline, child::AbstractElement) = iscontainer(parent) && isa(child, AbstractInline)
+# The following method will be called if one mixes blocks and inlines (unless specifically
+# overridden), and also functions as the ultimate fallback for can_contain.
 can_contain(parent::AbstractElement, child::AbstractElement) = false
 
 """
@@ -457,21 +474,105 @@ Base.:(==)(x::FootnoteLink, y::FootnoteLink) = (x.id == y.id)
 
 # Markdown tables:
 abstract type TableComponent <: AbstractBlock end
+iscontainer(::TableComponent) = true
 
 """
     mutable struct Table <: TableComponent
+
+Container block representing a table, an extension of the CommonMark spec, and should be
+interpreted as a rectangular grid of cells with a fixed number of rows and columns.
+
+* A [`Table`](@ref) node can only contain either [`TableHeader`](@ref) or
+  [`TableBody`](@ref) nodes as children.
+* [`TableHeader`](@ref) and [`TableBody`](@ref) can only contain [`TableRow`](@ref)s
+  as children. A [`TableHeader`](@ref) should contain only a single [`TableRow`](@ref), and
+  any additional ones should be ignored.
+* Each [`TableRow`](@ref) contains only [`TableCell`](@ref)s as children. The row with the
+  largest number of cells determines the width (number of columns) of the table.
+
+Since we can not constrain e.g. the number of children or in what order child nodes can
+appear in a Markdown tree, it is possible to construct tables that can be difficult to
+interpret. The following rules should be followed when interpreting tables:
+
+* The decendants of a [`Table`](@ref) node should be exactly be a single
+  [`TableHeader`](@ref) followed by a [`TableBody`](@ref).
+  - If the first child is a [`TableBody`](@ref), the header row is assumed to be a list of
+    empty cells.
+  - The rows from any nodes following the first [`TableBody`](@ref) are interpreted as
+    additional table body rows, even if they are contained in a [`TableHeader`](@ref).
+  - A [`Table`](@ref) with no children is interpreted as a table with a single empty header
+    cell.
+* A [`TableHeader`](@ref) that is the first child of a [`Table`](@ref) should only contain
+  one [`TableRow`](@ref).
+  - If a [`TableHeader`](@ref) that is the first child of a [`Table`](@ref) contains
+    additional rows, the additional rows are interpreted to be body rows.
+  - If a [`TableHeader`](@ref) that is the first child of a [`Table`](@ref) is empty, it is
+    assumed to represent a header row with empty cells.
+* Each [`TableRow`](@ref) of a table should contain the same number of [`TableCell`](@ref).
+  - Any row that has fewer cells than the longest row should be interpreted as if it is
+    padded with additional empty cells.
 """
 mutable struct Table <: TableComponent
-    spec::Vector{Symbol}
+    spec :: Vector{Symbol}
+
+    function Table(spec)
+        for (ncol, s) in enumerate(spec)
+            s in [:left, :right, :center] && continue
+            error("Invalid table specifier '$s' for column $ncol")
+        end
+        new(collect(spec))
+    end
 end
 Base.:(==)(x::Table, y::Table) = (x.spec == y.spec)
+can_contain(::Table, e::AbstractElement) = isa(e, TableHeader) || isa(e, TableBody)
+
+"""
+    struct TableHeader <: TableComponent
+
+Represents the header portion of a Markdown table and should only occur as the first child
+of a [`Table`](@ref) node and should only contain a single [`TableRow`](@ref) as a child.
+See [`Table`](@ref) for information on how to handle other circumstances.
+
+It can only contain [`TableRow`](@ref) elements.
+"""
 struct TableHeader <: TableComponent end
+can_contain(::TableHeader, e::AbstractElement) = isa(e, TableRow)
+
+"""
+    struct TableBody <: TableComponent
+
+Represents the body of a Markdown table and should only occur as the second child of a
+[`Table`](@ref) node. See [`Table`](@ref) for information on how to handle other
+circumstances.
+
+It can only contain [`TableRow`](@ref) elements.
+"""
 struct TableBody <: TableComponent end
+can_contain(::TableBody, e::AbstractElement) = isa(e, TableRow)
+
+"""
+    struct TableRow <: TableComponent
+
+Represents a row of a Markdown table. Can only contain [`TableCell`](@ref)s as children.
+"""
 struct TableRow <: TableComponent end
-struct TablePipe <: AbstractInline end # TODO: ???
+can_contain(::TableRow, e::AbstractElement) = isa(e, TableCell)
 
 """
     mutable struct TableCell <: TableComponent
+
+Represents a single cell in a Markdown table. Can contain inline nodes.
+
+* `align :: Symbol`: declares the alignment of a cell (can be `:left`, `:right`, or
+  `:center`), and should match the `.spec` field of the ancestor [`Table`](@ref)
+* `header :: Bool`: `true` if the cell is part of a header row, and should only be true if
+  the cell belongs to a row that is the first
+* `column :: Int`: the column index of the cell, which should match its position in the
+  Markdown tree
+
+It is possible that the fields of [`TableCell`](@ref) are inconsistent with the real
+structure of the Markdown tree, in which case the structure or the `.spec` field should take
+precedence when interpreting the elements.
 """
 mutable struct TableCell <: TableComponent
     align :: Symbol
@@ -479,6 +580,7 @@ mutable struct TableCell <: TableComponent
     column :: Int
 end
 Base.:(==)(x::TableCell, y::TableCell) = (x.align == y.align) && (x.header == y.header) && (x.column == y.column)
+can_contain(::TableCell, e::AbstractElement) = isa(e, AbstractInline)
 
 # src/extensions/interpolation.jl:struct JuliaValue <: AbstractInline
 # struct Backslash <: AbstractInline end

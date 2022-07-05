@@ -81,10 +81,10 @@ _startswith(prefix) = s -> startswith(s, prefix)
         stringvar = "bar"
         containervar = CodeBlock("lang", "code()")
         tree = @ast Document() do
-            Paragraph() do
+            Heading(1) do
                 "Foo"
             end
-            BlockQuote() do
+            Paragraph() do
                 stringvar
                 "Foo"
                 MarkdownAST.Text(stringvar) # call expr
@@ -97,13 +97,13 @@ _startswith(prefix) = s -> startswith(s, prefix)
         # Check the children:
         cs = collect(tree.children)
         # first child
-        @test cs[1].element isa Paragraph
+        @test cs[1].element isa Heading
         @test length(cs[1].children) == 1
         @test cs[1].parent === tree
         @test cs[1].previous === nothing
         @test cs[1].next === cs[2]
         # second child
-        @test cs[2].element isa BlockQuote
+        @test cs[2].element isa Paragraph
         @test length(cs[2].children) == 3
         @test cs[2].parent === tree
         @test cs[2].previous === cs[1]

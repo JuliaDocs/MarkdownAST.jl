@@ -56,32 +56,67 @@ function _convert_block(b::Markdown.List)
 end
 
 function _convert_block(b::Markdown.Table)
-    # TODO: I have no idea if this is even remotely correct.
-    @assert length(b.rows) >= 1
+    # If the Markdown table is somehow empty, we'll return an empty Table node
+    isempty(b.rows) && return Node(Table([]))
+    # We assume that the width of the table is the width of the widest row
+    ncols = maximum(length(row) for row in b.rows)
+    # Markdown uses :l / :r / :c for the table specs. We will also pad it with `:right`
+    # values (standard library's default) if need be, or drop the last ones if there are too
+    # many somehow.
+    spec = _convert_column_spec.(b.align)
+    if ncols > length(spec)
+        rpad_array!(spec, ncols, :right)
+    elseif ncols < length(spec)
+        spec = spec[1:ncols]
+    end
+    # A MD table should always contain a header. We'll split it off from the rest.
     header_row, body_rows = Iterators.peel(b.rows)
-    tablenode = Node(Table(Symbol[]))
+    tablenode = Node(Table(spec))
     headernode = Node(TableHeader())
-    # A MD table should always contain a header
-    push!(headernode.children, _convert_table_row(header_row))
+    push!(headernode.children, _convert_table_row(header_row, spec=spec, isheader = true))
     push!(tablenode.children, headernode)
     # If it doesn't have any more rows, then we don't append a TableBody
     if length(b.rows) >= 2
         bodynode = Node(TableBody())
         for row in body_rows
-            push!(bodynode.children, _convert_table_row(row))
+            push!(bodynode.children, _convert_table_row(row, spec=spec, isheader = false))
         end
         push!(tablenode.children, bodynode)
     end
     return tablenode
 end
-function _convert_table_row(row)
+function _convert_table_row(row; spec, isheader)
+    ncols = length(spec)
     rownode = Node(TableRow())
     for (i, cell) in enumerate(row)
-        c = TableCell(:nothing, false, i)
+        c = TableCell(spec[i], isheader, i)
         cellnode = _convert(c, _convert_inline, cell)
         push!(rownode.children, cellnode)
     end
+    # If need be, we pad the row with empty TableCells, to make sure that each row has the
+    # same number of cells
+    if length(row) < ncols
+        for i in (length(row)+1):ncols
+            cell = TableCell(spec[i], isheader, i)
+            push!(rownode.children, Node(cell))
+        end
+    end
     return rownode
+end
+_convert_column_spec(s :: Symbol) = (s === :r) ? :right :
+    (s === :l) ? :left : (s === :c) ? :center : begin
+        @warn "Invalid table spec in Markdown table: '$s'"
+        :right
+    end
+function rpad_array!(xs::Vector{T}, n::Integer, e::T) where {T}
+    n > 0
+    length(xs) >= n && return xs
+    i = n - length(xs)
+    while i > 0
+        push!(xs, e)
+        i -= 1
+    end
+    return xs
 end
 
 # Inline nodes:

@@ -2,8 +2,9 @@ using MarkdownAST
 using MarkdownAST: AbstractElement, AbstractBlock, AbstractInline,
     Document,
     Admonition, BlockQuote, CodeBlock, DisplayMath, FootnoteDefinition, HTMLBlock, Heading,
-    Item, List, Paragraph, TableComponent, ThematicBreak,
-    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong, TablePipe, Text,
+    Item, List, Paragraph, ThematicBreak,
+    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong,
+    TableComponent, Table, TableHeader, TableBody, TableRow, TableCell,
     iscontainer, can_contain, isblock, isinline
 using Test
 
@@ -96,7 +97,7 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
     end
     # (5) Inline leafs:
     for e in [
-        Code("code"), FootnoteLink("id"), HTMLInline("html"), InlineMath("math"), Text("text")
+        Code("code"), FootnoteLink("id"), HTMLInline("html"), InlineMath("math"), MarkdownAST.Text("text")
     ]
         @test ! iscontainer(e)
         @test ! isblock(e)
@@ -110,6 +111,64 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
     # Lists are special:
     # List, Item
 
-    # As are tables:
-    # TableComponent, TablePipe
+    # Tables
+    let e = Table([])
+        @test iscontainer(e)
+        @test can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test can_contain(e, TableHeader())
+        @test can_contain(e, TableBody())
+        @test ! can_contain(e, TableRow())
+        @test ! can_contain(e, TableCell(:c, true, 1))
+        @test ! can_contain(e, PseudoBlock(true))
+        @test ! can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(true))
+        @test ! can_contain(e, PseudoInline(false))
+    end
+    for e = [TableHeader(), TableBody()]
+        @test iscontainer(e)
+        # Because all TableComponents are AbstractBlocks, we can actually put
+        # them in arbitrary nodes that can contain blocks..
+        @test_broken ! can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test ! can_contain(e, TableHeader())
+        @test ! can_contain(e, TableBody())
+        @test can_contain(e, TableRow())
+        @test ! can_contain(e, TableCell(:c, true, 1))
+        @test ! can_contain(e, PseudoBlock(true))
+        @test ! can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(true))
+        @test ! can_contain(e, PseudoInline(false))
+    end
+    let e = TableRow()
+        @test iscontainer(e)
+        # Because all TableComponents are AbstractBlocks, we can actually put
+        # them in arbitrary nodes that can contain blocks..
+        @test_broken ! can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test ! can_contain(e, TableHeader())
+        @test ! can_contain(e, TableBody())
+        @test ! can_contain(e, TableRow())
+        @test can_contain(e, TableCell(:c, true, 1))
+        @test ! can_contain(e, PseudoBlock(true))
+        @test ! can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(true))
+        @test ! can_contain(e, PseudoInline(false))
+    end
+    let e = TableCell(:c, true, 1)
+        @test iscontainer(e)
+        # Because all TableComponents are AbstractBlocks, we can actually put
+        # them in arbitrary nodes that can contain blocks..
+        @test_broken ! can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test ! can_contain(e, TableHeader())
+        @test ! can_contain(e, TableBody())
+        @test ! can_contain(e, TableRow())
+        @test ! can_contain(e, TableCell(:c, true, 1))
+        @test ! can_contain(e, PseudoBlock(true))
+        @test ! can_contain(e, PseudoBlock(false))
+        @test can_contain(e, PseudoInline(true))
+        @test can_contain(e, PseudoInline(false))
+    end
+    @test_throws ErrorException Table([:foo])
 end
