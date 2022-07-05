@@ -5,4 +5,5 @@ using Test
     include("markdown.jl")
     include("node.jl")
     include("invalidast.jl")
+    include("stdlib.jl")
 end
