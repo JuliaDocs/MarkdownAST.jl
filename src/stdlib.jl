@@ -47,8 +47,7 @@ _convert_block(b::Markdown.Footnote) = _convert(FootnoteDefinition(b.id), _conve
 
 function _convert_block(b::Markdown.List)
     tight = all(isequal(1), length.(b.items))
-    orderedstart = (b.ordered == -1) ? nothing : b.ordered
-    list = Node(List(b.ordered == -1 ? :ordered : :bullet, tight))
+    list = Node(List(b.ordered == -1 ? :bullet : :ordered, tight))
     for item in b.items
         push!(list.children, _convert(Item(), _convert_block, item))
     end

@@ -151,6 +151,7 @@ mutable struct List <: AbstractBlock
     end
 end
 iscontainer(::List) = true
+Base.:(==)(x::List, y::List) = (x.type == y.type) && (x.tight == y.tight)
 
 """
     struct Item <: AbstractBlock
@@ -585,7 +586,7 @@ can_contain(::TableCell, e::AbstractElement) = isa(e, AbstractInline)
 # src/extensions/interpolation.jl:struct JuliaValue <: AbstractInline
 # struct Backslash <: AbstractInline end
 # struct SoftBreak <: AbstractInline end
-# struct LineBreak <: AbstractInline end
+struct LineBreak <: AbstractInline end
 
 struct InvalidChildException <: Exception
     parent :: AbstractElement

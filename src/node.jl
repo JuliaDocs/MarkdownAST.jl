@@ -135,16 +135,21 @@ function Base.setproperty!(node::Node, name::Symbol, x)
 end
 
 function Base.show(io::IO, node::Node{M}) where M
-    # If the type metadata type is Nothing, we'll omit
-    if M === Nothing
-        print(io, "Node(")
-        show(io, node.element)
-        print(io, ")")
-    else
-        print(io, "Node{", M, "}(")
-        show(io, node.element)
+    print(io, "@ast ")
+    M === Nothing || print(io, "$M ")
+    _showast(io, node)
+end
+function _showast(io::IO, node::Node; indent = 0)
+    prefix = ' '^(2*indent)
+    print(io, prefix, node.element)
+    if haschildren(node)
+        println(io, " do")
+        for child in node.children
+            _showast(io, child; indent = indent + 1)
+        end
+        print(io, prefix, "end")
     end
-    print(io, ")")
+    println(io)
 end
 
 """

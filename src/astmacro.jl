@@ -44,6 +44,12 @@ macro ast(expr)
     ast_expression(ast...)
 end
 
+# TODO: add a 2-argument @ast to be consistent with the Node{M}(...) printing in show(), i.e.
+#
+#   @ast M markdown-node-expression
+#
+# Should construct Node(element, M()) nodes.
+
 function astify(expr::Expr)
     # do-expressions are special, but in other cases we just assume the expression is some
     # user code that should be evaluated and it returns a container object (or a string).

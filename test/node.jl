@@ -16,9 +16,9 @@ _startswith(prefix) = s -> startswith(s, prefix)
 
     # Make sure that we discard the {Nothing} type parameter for the "standard"
     # node when printing:
-    @test repr(Node(Document())) |> _startswith("Node(")
+    @test repr(Node(Document())) |> _startswith("@ast Document()")
     # note: interpolating Int because it's an alias, and is actually 'Int64'
-    @test repr(Node{Int}(Document(), 1)) |> _startswith("Node{$(Int)}(")
+    @test repr(Node{Int}(Document(), 1)) |> _startswith("@ast Int64 Document()")
 
     # Accessing the container of the node:
     let n = Node(Document())

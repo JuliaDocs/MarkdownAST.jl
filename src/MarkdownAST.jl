@@ -2,7 +2,6 @@ module MarkdownAST
 
 include("markdown.jl")
 include("node.jl")
-include("show.jl")
 include("astmacro.jl")
 include("stdlib.jl")
 
