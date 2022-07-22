@@ -162,7 +162,6 @@ struct Item <: AbstractBlock end
 iscontainer(::Item) = true
 # List can only contain Item, and Item can only be contained in a List.
 can_contain(::List, ::AbstractElement) = false
-can_contain(::AbstractElement, ::Item) = false
 can_contain(::List, ::Item) = true
 
 """

@@ -108,8 +108,29 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
         @test can_contain(PseudoInline(true), e)
     end
 
-    # Lists are special:
-    # List, Item
+    # Lists are special
+    let e = List(:bullet, true)
+        @test iscontainer(e)
+        @test can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test can_contain(e, Item())
+        @test ! can_contain(e, PseudoBlock(true))
+        @test ! can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(true))
+        @test ! can_contain(e, PseudoInline(false))
+    end
+    let e = Item()
+        @test iscontainer(e)
+        # Since Item <: AbstractBlock, it can be contained in any element that
+        # can contain blocks, including other Items..
+        @test_broken ! can_contain(Document(), e)
+        @test ! can_contain(Paragraph(), e)
+        @test_broken ! can_contain(e, Item())
+        @test can_contain(e, PseudoBlock(true))
+        @test can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(true))
+        @test ! can_contain(e, PseudoInline(false))
+    end
 
     # Tables
     let e = Table([])

@@ -176,4 +176,18 @@ _startswith(prefix) = s -> startswith(s, prefix)
     @test x != y
     @test first(x.children) !== first(y.children)
     @test first(x.children) == first(y.children)
+
+    n = @ast Paragraph() do
+        "foo-"
+        Strong() do; "bar: "; Code("baz"); end
+    end
+    @test repr(n) == """
+    @ast Paragraph() do
+      MarkdownAST.Text("foo-")
+      Strong() do
+        MarkdownAST.Text("bar: ")
+        Code("baz")
+      end
+    end
+    """
 end
