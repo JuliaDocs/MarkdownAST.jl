@@ -583,8 +583,27 @@ Base.:(==)(x::TableCell, y::TableCell) = (x.align == y.align) && (x.header == y.
 can_contain(::TableCell, e::AbstractElement) = isa(e, AbstractInline)
 
 # src/extensions/interpolation.jl:struct JuliaValue <: AbstractInline
-# struct Backslash <: AbstractInline end
-# struct SoftBreak <: AbstractInline end
+
+"""
+    struct Backslash <: AbstractInline
+
+Represents a backslash character `\\`.
+"""
+struct Backslash <: AbstractInline end
+
+"""
+    struct SoftBreak <: AbstractInline
+
+Represents a soft break which can be rendered as a space instead.
+"""
+struct SoftBreak <: AbstractInline end
+
+"""
+    struct LineBreak <: AbstractInline
+
+Represents a hard line break in a sequence of inline nodes that should lead to a newline
+when rendered.
+"""
 struct LineBreak <: AbstractInline end
 
 struct InvalidChildException <: Exception

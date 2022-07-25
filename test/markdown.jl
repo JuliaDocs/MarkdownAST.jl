@@ -5,6 +5,7 @@ using MarkdownAST: AbstractElement, AbstractBlock, AbstractInline,
     Item, List, Paragraph, ThematicBreak,
     Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong,
     TableComponent, Table, TableHeader, TableBody, TableRow, TableCell,
+    LineBreak, SoftBreak, Backslash,
     iscontainer, can_contain, isblock, isinline
 using Test
 
@@ -98,6 +99,17 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
     # (5) Inline leafs:
     for e in [
         Code("code"), FootnoteLink("id"), HTMLInline("html"), InlineMath("math"), MarkdownAST.Text("text")
+    ]
+        @test ! iscontainer(e)
+        @test ! isblock(e)
+        @test isinline(e)
+        @test ! can_contain(e, PseudoBlock(false))
+        @test ! can_contain(e, PseudoInline(false))
+        @test ! can_contain(PseudoBlock(true), e)
+        @test can_contain(PseudoInline(true), e)
+    end
+    for e in [
+        Backslash(), SoftBreak(), LineBreak(),
     ]
         @test ! iscontainer(e)
         @test ! isblock(e)
