@@ -368,6 +368,8 @@ Base.:(==)(x::Text, y::Text) = (x.text == y.text)
 """
     mutable struct Admonition <: AbstractBlock
 
+A container block representing an admonition. Can contain other block elements as children.
+
 # Fields
 
 * `.category :: String`: admonition category
@@ -379,6 +381,7 @@ Admonition(category :: AbstractString, title :: AbstractString)
 ```
 """
 mutable struct Admonition <: AbstractBlock
+    # TODO: constraints on the category string?
     category :: String
     title :: String
 end
