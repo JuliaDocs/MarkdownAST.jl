@@ -3,7 +3,7 @@ using MarkdownAST: AbstractElement, AbstractBlock, AbstractInline,
     Document,
     Admonition, BlockQuote, CodeBlock, DisplayMath, FootnoteDefinition, HTMLBlock, Heading,
     Item, List, Paragraph, ThematicBreak,
-    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong,
+    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong, JuliaValue,
     TableComponent, Table, TableHeader, TableBody, TableRow, TableCell,
     LineBreak, SoftBreak, Backslash,
     iscontainer, can_contain, isblock, isinline
@@ -98,7 +98,8 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
     end
     # (5) Inline leafs:
     for e in [
-        Code("code"), FootnoteLink("id"), HTMLInline("html"), InlineMath("math"), MarkdownAST.Text("text")
+        Code("code"), FootnoteLink("id"), HTMLInline("html"), InlineMath("math"),
+        MarkdownAST.Text("text"), JuliaValue(:(x^2), 4),
     ]
         @test ! iscontainer(e)
         @test ! isblock(e)

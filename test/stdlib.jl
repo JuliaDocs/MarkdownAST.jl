@@ -3,7 +3,7 @@ using MarkdownAST: MarkdownAST, Node, @ast, Document,
     Paragraph, Heading, CodeBlock, BlockQuote, DisplayMath, ThematicBreak,
     List, Item, FootnoteLink, FootnoteDefinition, Admonition,
     Table, TableHeader, TableBody, TableRow, TableCell,
-    LineBreak
+    JuliaValue, LineBreak
 using Markdown: Markdown
 using Test
 
@@ -245,7 +245,70 @@ using Test
         end
     end
 
-    # TODO: interpolation
+    # Interpolation
+    z = 1//2
+    @test convert(Node, Markdown.md"""
+    Interpolations: $(:foo), $(z), $(abs2(z)), $(2)
+    """) == @ast Document() do
+        Paragraph() do
+            "Interpolations: "
+            JuliaValue(nothing, :foo)
+            ", "
+            JuliaValue(nothing, 1//2)
+            ", "
+            JuliaValue(nothing, 1//4)
+            ", "
+            JuliaValue(nothing, 2)
+        end
+    end
+    # interpolated string values are indistinguishable from normal text nodes
+    # in the standard library AST
+    foo = "foo"
+    @test convert(Node, Markdown.md"""
+    Interpolations: $("bar"), $(foo)
+    """) == @ast Document() do
+        Paragraph() do
+            "Interpolations: "
+            "bar"
+            ", "
+            "foo"
+        end
+    end
+    # It is possible to have interpolation "blocks" in the standard library
+    @test convert(Node, Markdown.md"""
+    Block:
 
-    # TODO: tests for problematic cases, like some manually crafted nodes
+    $(123)
+
+    > $(1234)
+    """) == @ast Document() do
+        Paragraph() do; "Block:"; end
+        Paragraph() do
+            JuliaValue(nothing, 123)
+        end
+        BlockQuote() do
+            Paragraph() do
+                JuliaValue(nothing, 1234)
+            end
+        end
+    end
+
+    # Problematic cases, like manually crafted nodes
+    #
+    # It is theoretically possible to have inline nodes in block context:
+    let m = Markdown.MD()
+        push!(m.content, "Foo")
+        push!(m.content, Markdown.Link("text", "url"))
+        @test convert(Node, m) == @ast Document() do
+            Paragraph() do
+                "Foo"
+            end
+            Paragraph() do
+                Link("url", "") do
+                    "text"
+                end
+            end
+        end
+    end
+    # TODO: more of these
 end

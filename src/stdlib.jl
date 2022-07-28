@@ -155,12 +155,14 @@ function _convert_inline(s::Markdown.Footnote)
 end
 _convert_inline(s::AbstractString) = Node(Text(s))
 
-# TODO: Fallback methods. These should maybe use the interpolation extension?
-# function _convert_inline(x)
-#     @debug "Strange inline Markdown node (typeof(x) = $(typeof(x))), falling back to repr()" x
-#     Text(repr(x))
-# end
-# function _convert_block(x)
-#     @debug "Strange inline Markdown node (typeof(x) = $(typeof(x))), falling back to repr()" x
-#     Paragraph([Text(repr(x))])
-# end
+# Fallback methods for non-Markdown types. If we find such nodes in the tree, we assume that
+# they correspond to the interpolation of Julia values.
+_convert_inline(x) = Node(JuliaValue(nothing, x))
+# JuliaValue is an inline node, so in a block context we surround it with a Paragraph.
+# Incidentally, this would also capture any inline nodes that somehow have ended up in a
+# block context.
+function _convert_block(x)
+    p = Node(Paragraph())
+    push!(p.children, _convert_inline(x))
+    return p
+end

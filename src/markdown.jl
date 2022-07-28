@@ -585,8 +585,6 @@ end
 Base.:(==)(x::TableCell, y::TableCell) = (x.align == y.align) && (x.header == y.header) && (x.column == y.column)
 can_contain(::TableCell, e::AbstractElement) = isa(e, AbstractInline)
 
-# src/extensions/interpolation.jl:struct JuliaValue <: AbstractInline
-
 """
     struct Backslash <: AbstractInline
 
@@ -608,6 +606,33 @@ Represents a hard line break in a sequence of inline nodes that should lead to a
 when rendered.
 """
 struct LineBreak <: AbstractInline end
+
+"""
+    struct JuliaValue <: AbstractInline
+
+Inline leaf element for interpolation of Julia expressions and their evaluated values.
+Two `JuliaValue` objects are considered equal if the Julia objects they refer to are equal
+(even if they originate from different expressions).
+
+# Fields
+
+* `.ex :: Any`: contains the original Julia expression (e.g. `Expr`, `Symbol`, or some
+  literal value)
+* `.ref :: Any`: stores the Julia object the expression evaluates to
+
+# Constructors
+
+```julia
+JuliaValue(ex, ref = nothing)
+```
+"""
+struct JuliaValue <: AbstractInline
+    ex
+    ref # TODO: distinguish .ref that is unset and evaluates to `nothing`
+    JuliaValue(ex, value = nothing) = new(ex, value)
+end
+# TODO: should this be === ?
+Base.:(==)(x::JuliaValue, y::JuliaValue) = (x.ref == y.ref)
 
 struct InvalidChildException <: Exception
     parent :: AbstractElement
