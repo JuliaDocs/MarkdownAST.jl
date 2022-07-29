@@ -212,6 +212,23 @@ using Test
             Paragraph() do; "xyz"; end
         end
     end
+    @test convert(Node, Markdown.md"""
+    !!! foo
+
+        !!! warn "FOOBAR"
+            Hello World
+
+            ```math
+            x+1
+            ```
+    """) == @ast Document() do
+        Admonition("foo", "Foo") do
+            Admonition("warn", "FOOBAR") do
+                Paragraph() do; "Hello World"; end
+                DisplayMath("x+1")
+            end
+        end
+    end
 
     # LineBreak, Backslash, SoftBreak
     @test convert(Node, Markdown.md"""
@@ -310,5 +327,28 @@ using Test
             end
         end
     end
-    # TODO: more of these
+
+    # Tests from the Documenter Markdown2 module
+    @test convert(Node, Markdown.parse(raw"""
+    $$
+    f
+    $$
+    """)) == @ast Document() do
+        Paragraph() do; JuliaValue(nothing, :$); end
+        Paragraph() do; "f "; JuliaValue(nothing, :$); end
+    end
+    @test convert(Node, Markdown.parse(raw"""
+    X $(42) Y
+    """)) == @ast Document() do
+        Paragraph() do
+            "X "
+            JuliaValue(nothing, 42)
+            " Y"
+        end
+    end
+    @test convert(Node, Markdown.md"""
+    #
+    """) == @ast Document() do
+        Heading(1) do; ""; end
+    end
 end
