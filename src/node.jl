@@ -7,9 +7,9 @@
 Implements a linked list type representation of a Markdown abstract syntax tree, where each
 node contains pointers to the children and parent nodes, to make it possible to easily
 traverse the whole tree in any direction. Each node also contains an "element", which is an
-instance of some [`AbstractElement`](@ref) subtype and can be accesses via the `.element`
-property, and contains the semantic information about the node (e.g. wheter it is a list or
-a paragraph).
+instance of some [`AbstractElement`](@ref MarkdownAST.AbstractElement) subtype and can be
+accesses via the `.element` property, and contains the semantic information about the node
+(e.g. wheter it is a list or a paragraph).
 
 Optionally, each node can also store additional meta information, which will be an object of
 type `M` (see also the `.meta` property). By default, the node does not contain any extra

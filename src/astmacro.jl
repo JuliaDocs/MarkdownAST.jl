@@ -6,9 +6,9 @@ a Markdown AST.
 
 The `markdown-node-expression` must be either:
 
-1. A Markdown element (i.e. some [AbstractElement](@ref) object), such as a constructor call
-   (e.g. `Paragraph()`), function call returning an element, or a variable pointing to an
-   element.
+1. A Markdown element (i.e. some [`AbstractElement`](@ref MarkdownAST.AbstractElement) object),
+   such as a constructor call (e.g. `Paragraph()`), function call returning an element, or a
+   variable pointing to an element.
 
 2. A `do`-block, with the function call part being an element (as above), and the contents
    of the `do`-block a sequence of other node expressions, i.e.

@@ -80,7 +80,7 @@ Determines if the `child` element can be a direct child of the `parent` element.
 
 This is used to constrain the types of valid children for some elements, such as for the
 elements that are only allowed to have inline child elements or to make sure that
-[`List`s](@ref List) only contain [`Item`s](@ref Item).
+[`List`s](@ref MarkdownAST.List) only contain [`Item`s](@ref MarkdownAST.Item).
 
 If the `parent` element is a leaf node (`iscontainer(parent) === false`)
 
@@ -126,7 +126,7 @@ iscontainer(::Document) = true
     mutable struct List <: AbstractBlock
 
 Represents a Markdown list.
-The children of a `List` should only be [`Item`s](@ref Item), representing
+The children of a `List` should only be [`Item`s](@ref MarkdownAST.Item), representing
 individual list items.
 
 # Fields
@@ -253,7 +253,7 @@ Base.:(==)(x::CodeBlock, y::CodeBlock) = (x.info == y.info) && (x.code == y.code
     mutable struct Link <: AbstractInline
 
 Inline element representing a link. Can contain other inline nodes, but should not contain
-other [`Link`s](@ref).
+other [`Link`s](@ref MarkdownAST.Link).
 
 # Fields
 
