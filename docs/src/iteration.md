@@ -1,6 +1,6 @@
 # Interation over trees
 
-The [`Node`](@ref) type implements the [AbstractTrees](https://github.com/JuliaCollections/AbstractTrees.jl) interface which provides various general tree-iteration algorithms.
+The [`Node`](@ref MarkdownAST.Node) type implements the [AbstractTrees](https://github.com/JuliaCollections/AbstractTrees.jl) interface which provides various general tree-iteration algorithms.
 
 Using the following MarkdownAST tree as an example:
 
@@ -22,7 +22,7 @@ end
 nothing # hide
 ```
 
-The different [AbstractTrees iterators](https://juliacollections.github.io/AbstractTrees.jl/stable/iteration/), such as `PostOrderDFS`, `PreOrderDFS`, or `Leaves`, can be used to construct iterators from the `md` variable (which is an instance of [`Node`](@ref)).
+The different [AbstractTrees iterators](https://juliacollections.github.io/AbstractTrees.jl/stable/iteration/), such as `PostOrderDFS`, `PreOrderDFS`, or `Leaves`, can be used to construct iterators from the `md` variable (which is an instance of [`Node`](@ref MarkdownAST.Node)).
 Each algorithm provides a way to iterate through the trees in a different way, as can be seen in the following examples:
 
 ```@example iter
