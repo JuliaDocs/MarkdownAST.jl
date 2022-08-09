@@ -6,4 +6,5 @@ using Test
     include("node.jl")
     include("invalidast.jl")
     include("stdlib.jl")
+    include("abstracttrees.jl")
 end

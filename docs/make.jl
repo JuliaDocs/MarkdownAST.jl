@@ -1,4 +1,4 @@
-using MarkdownAST
+using MarkdownAST, AbstractTrees
 using Documenter
 
 makedocs(
@@ -7,6 +7,7 @@ makedocs(
         "Introduction" => "index.md",
         "elements.md",
         "node.md",
+        "iteration.md",
         "other.md",
     ]
 )
