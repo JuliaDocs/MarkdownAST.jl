@@ -7,6 +7,7 @@ makedocs(
         "Introduction" => "index.md",
         "elements.md",
         "node.md",
+        "astmacro.md",
         "iteration.md",
         "other.md",
     ]
