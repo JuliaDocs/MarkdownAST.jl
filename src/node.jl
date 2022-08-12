@@ -7,9 +7,9 @@
 Implements a linked list type representation of a Markdown abstract syntax tree, where each
 node contains pointers to the children and parent nodes, to make it possible to easily
 traverse the whole tree in any direction. Each node also contains an "element", which is an
-instance of some [`AbstractElement`](@ref MarkdownAST.AbstractElement) subtype and can be
-accesses via the `.element` property, and contains the semantic information about the node
-(e.g. wheter it is a list or a paragraph).
+instance of some [`AbstractElement`](@ref MarkdownAST.AbstractElement) subtype, and can be
+accessed via the `.element` property. The element object contains the semantic information
+about the node (e.g. wheter it is a list or a paragraph).
 
 Optionally, each node can also store additional meta information, which will be an object of
 type `M` (see also the `.meta` property). By default, the node does not contain any extra
@@ -49,9 +49,9 @@ underlying fields of the struct should not be accessed directly.
 - `.children`: an iterable object that can be used to acces and modify the children of the
   node
 
-The `.children` field is implemented with a type that in turn implemement the iteration
-interface. However, the exact type information etc. is an implementation detail, and the
-one should only rely on the following documented APIs:
+The `.children` field is implemented with a wrapper type that implemements the iteration
+protocol. However, the exact type information etc. is an implementation detail, and one
+should only rely on the following documented APIs:
 
 - The following methods are implemented for `.children`:
   [`length`](@ref Base.length(children::NodeChildren)),
@@ -383,7 +383,7 @@ end
 isrootnode(node::Node) = isnothing(node.parent)
 
 """
-   ==(x::Node, y::Node) -> Bool
+    ==(x::Node, y::Node) -> Bool
 
 Determines if two trees are equal by recursively walking through the whole tree (if need be)
 and comparing each node. Parent nodes are ignored when comparing for equality (so that it

@@ -1,4 +1,4 @@
-# Interation over trees
+# Iteration over trees
 
 The [`Node`](@ref MarkdownAST.Node) type implements the [AbstractTrees](https://github.com/JuliaCollections/AbstractTrees.jl) interface which provides various general tree-iteration algorithms.
 
