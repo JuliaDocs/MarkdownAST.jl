@@ -26,6 +26,8 @@ In MarkdownAST, every block and inline element is a subtype of [`AbstractBlock`]
 ```@docs
 AbstractBlock
 AbstractInline
+isblock
+isinline
 ```
 
 ## Constraints on children

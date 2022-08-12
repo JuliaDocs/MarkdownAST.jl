@@ -10,7 +10,11 @@ makedocs(
         "astmacro.md",
         "iteration.md",
         "other.md",
-    ]
+    ],
+    # documentation checks
+    modules = [MarkdownAST],
+    checkdocs = :all,
+    strict = true,
 )
 
 deploydocs(
