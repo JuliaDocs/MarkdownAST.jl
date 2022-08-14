@@ -1,5 +1,6 @@
 using MarkdownAST, AbstractTrees
 using Documenter
+import Markdown # necessary to reference stdlib in at-docs signatures
 
 makedocs(
     sitename = "MarkdownAST",
@@ -9,7 +10,7 @@ makedocs(
         "node.md",
         "astmacro.md",
         "iteration.md",
-        "other.md",
+        "Conversion to/from `Markdown`" => "stdlib.md",
     ],
     # documentation checks
     modules = [MarkdownAST],

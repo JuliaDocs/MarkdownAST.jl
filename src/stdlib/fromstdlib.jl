@@ -1,10 +1,11 @@
-# Conversion methods to and from the standard library Markdown trees:
-using Markdown: Markdown
-
+# Conversion methods from the standard library Markdown trees:
 """
     convert(::Type{Node}, md::Markdown.MD) -> Node
 
 Converts a standard library Markdown AST into MarkdownAST representation.
+
+Note that it is not possible to convert subtrees, and only `MD` can be converted.
+The result will be a tree with [`Document`](@ref) as the root element.
 """
 function Base.convert(::Type{Node}, md::Markdown.MD)
     node = Node(Document())

@@ -1,11 +1,13 @@
 module MarkdownAST
 import AbstractTrees
+import Markdown
 
 include("markdown.jl")
 include("node.jl")
 include("astmacro.jl")
-include("stdlib.jl")
 include("abstracttrees.jl")
+include("stdlib/fromstdlib.jl")
+include("stdlib/tostdlib.jl")
 
 # Compat with older Julia versions
 #

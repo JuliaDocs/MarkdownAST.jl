@@ -7,7 +7,7 @@ using MarkdownAST: MarkdownAST, Node, @ast, Document,
 using Markdown: Markdown
 using Test
 
-@testset "Markdown stdlib conversion" begin
+@testset "Conversion from Markdown stdlib" begin
     # Helper functions
     @test MarkdownAST.rpad_array!([], 3, 0) == [0, 0, 0]
     @test MarkdownAST.rpad_array!([1], 3, 0) == [1, 0, 0]
