@@ -351,4 +351,13 @@ using Test
     """) == @ast Document() do
         Heading(1) do; ""; end
     end
+
+    # Test conversion into nodes with custom metadata
+    let md = Markdown.md"xyz"
+        @test convert(Node{Nothing}, md) isa Node{Nothing}
+        @test_throws MethodError convert(Node{Int}, md)
+        @test convert(Node{Vector{Int}}, md) isa Node{Vector{Int}}
+        @test convert(Node{Int}, md, () -> 42) isa Node{Int}
+        @test_throws TypeError convert(Node{Int}, md, () -> "42") isa Node{Int}
+    end
 end
