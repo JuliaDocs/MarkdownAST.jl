@@ -70,8 +70,6 @@ BlockQuote
 Code
 CodeBlock
 Emph
-FootnoteDefinition
-FootnoteLink
 HTMLBlock
 HTMLInline
 Heading
@@ -95,6 +93,8 @@ However, as MarkdownAST is meant to be interoperable with the `Markdown` standar
 ```@docs
 Admonition
 DisplayMath
+FootnoteDefinition
+FootnoteLink
 InlineMath
 JuliaValue
 Table
