@@ -62,6 +62,9 @@ _startswith(prefix) = s -> startswith(s, prefix)
         @test pushfirst!(root.children, n2) == root.children
         @test length(root.children) == 3
         @test all(collect(root.children) .=== Node[n2, n3, n1])
+        # Make sure we can't push! to Node
+        @test_throws MarkdownAST.UnimplementedMethodError push!(root, n1)
+        @test_throws MarkdownAST.UnimplementedMethodError pushfirst!(root, n1)
     end
 
     # Equality of simple nodes:

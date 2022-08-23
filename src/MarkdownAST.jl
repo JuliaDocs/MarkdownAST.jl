@@ -2,6 +2,7 @@ module MarkdownAST
 import AbstractTrees
 import Markdown
 
+include("utilities.jl")
 include("markdown.jl")
 include("node.jl")
 include("astmacro.jl")

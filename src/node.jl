@@ -296,6 +296,13 @@ function Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}
     # Return the updated parent node
     return children
 end
+# Helful error message if the user does push!(node, child)
+function Base.push!(::Node, ::Any)
+    throw(UnimplementedMethodError(
+        "push!(node::Node, ...)",
+        "If you want to add new children to a node, use push!(node.children, ...) instead."
+    ))
+end
 
 """
     Base.pushfirst!(node.children, child::Node) -> Node
@@ -324,6 +331,13 @@ function Base.pushfirst!(children::NodeChildren{T}, child::T) where T
     end
     # Return the updated parent node
     return children
+end
+# Helful error message if the user does pushfirst!(node, child)
+function Base.pushfirst!(::Node, ::Any)
+    throw(UnimplementedMethodError(
+        "pushfirst!(node::Node, ...)",
+        "If you want to add new children to a node, use pushfirst!(node.children, ...) instead."
+    ))
 end
 
 """
