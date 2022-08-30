@@ -59,6 +59,18 @@ Base.pushfirst!(::NodeChildren{T}, ::T) where {T <: Node}
     The choice to apparently mutate the `.children` property when adding child nodes is purely syntactic, and in reality the operation affects the parent [`Node`](@ref) object.
     Internally the `.children` iterator is simply a thin wrapper around the parent node.
 
+## Copying trees
+
+The [`copy_tree`](@ref) function can be used to easily copy a tree.
+
+```@docs
+copy_tree
+```
+
+This can be particularly useful in circumstances where a tree is passed to other code that while processing the tree also mutates it.
+As [`Node`](@ref) is a mutable type, this means that the original tree also mutates.
+Passing the result from [`copy_tree`](@ref) can be used to avoid that issue.
+
 ## Index
 
 ```@index
