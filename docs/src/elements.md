@@ -97,11 +97,25 @@ FootnoteDefinition
 FootnoteLink
 InlineMath
 JuliaValue
+```
+
+### Tables
+
+Tables are build up from the following elements: [`Table`](@ref), [`TableBody`](@ref), [`TableCell`](@ref), [`TableHeader`](@ref), [`TableRow`](@ref).
+
+```@docs
 Table
 TableBody
 TableCell
 TableHeader
 TableRow
+```
+
+In addition, to help with the complexity of the table structure, the following helper functions can be used when working with [`Table`](@ref) elements.
+
+```@docs
+tablerows
+tablesize
 ```
 
 ## Other elements

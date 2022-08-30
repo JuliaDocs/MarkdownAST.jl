@@ -193,27 +193,4 @@ _startswith(prefix) = s -> startswith(s, prefix)
       end
     end
     """
-
-    # copy_tree
-    x0 = @ast Paragraph() do
-        Link("", "") do
-            "link"
-        end
-        "foo"
-    end
-    x1 = copy_tree(x0)
-    @test x1 == x0
-    @test x1 !== x0
-    x2 = copy_tree(first(x0.children))
-    @test x2.element isa Link
-    x3 = copy_tree(x0) do node, element
-        @test node.element === element
-        if node.element isa MarkdownAST.Text
-            Code(node.element.text)
-        else
-            deepcopy(node.element)
-        end
-    end
-    @test x3 != x0
-    @test first(x3.children).next.element isa Code
 end

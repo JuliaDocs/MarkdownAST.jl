@@ -5,6 +5,7 @@ import Markdown
 include("utilities.jl")
 include("markdown.jl")
 include("node.jl")
+include("tools.jl")
 include("astmacro.jl")
 include("abstracttrees.jl")
 include("stdlib/fromstdlib.jl")

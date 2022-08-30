@@ -7,6 +7,7 @@ using Test
     include("markdown.jl")
     include("node.jl")
     include("invalidast.jl")
+    include("tools.jl")
     include("fromstdlib.jl")
     include("tostdlib.jl")
     include("abstracttrees.jl")
