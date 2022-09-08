@@ -59,8 +59,8 @@ _convert_block(nodefn::NodeFn, b::Markdown.LaTeX) = nodefn(DisplayMath(b.formula
 _convert_block(nodefn::NodeFn, b::Markdown.Footnote) = _convert(nodefn, FootnoteDefinition(b.id), _convert_block, b.text)
 
 function _convert_block(nodefn::NodeFn, b::Markdown.List)
-    tight = all(isequal(1), length.(b.items))
-    list = nodefn(List(b.ordered == -1 ? :bullet : :ordered, tight))
+    list = nodefn(List(b.ordered == -1 ? :bullet : :ordered, !b.loose))
+    # TODO: should we warn if tight != all(isequal(1), length.(b.items)) ?
     for item in b.items
         push!(list.children, _convert(nodefn, Item(), _convert_block, item))
     end

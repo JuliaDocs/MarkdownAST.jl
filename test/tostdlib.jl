@@ -178,15 +178,13 @@ struct UnknownBlock <: MarkdownAST.AbstractBlock end
                 Item() do; Paragraph() do; "bar"; end; end
             end
         end
-
         md = convert(Markdown.MD, ast)
-        # TODO: .tight gets recalculated when converting back to MarkdownAST
         @test convert(Node, md) == @ast Document() do
             List(:ordered, true) do
                 Item() do; Paragraph() do; "foo"; end; end
                 Item() do; Paragraph() do; "bar"; end; end
             end
-            List(:ordered, true) do
+            List(:ordered, false) do
                 Item() do; Paragraph() do; "foo"; end; end
                 Item() do; Paragraph() do; "bar"; end; end
             end
@@ -194,7 +192,7 @@ struct UnknownBlock <: MarkdownAST.AbstractBlock end
                 Item() do; Paragraph() do; "foo"; end; end
                 Item() do; Paragraph() do; "bar"; end; end
             end
-            List(:bullet, true) do
+            List(:bullet, false) do
                 Item() do; Paragraph() do; "foo"; end; end
                 Item() do; Paragraph() do; "bar"; end; end
             end

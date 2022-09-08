@@ -137,7 +137,7 @@ using Test
             Item() do; Paragraph() do; "aaa"; end; end
             Item() do; Paragraph() do; "bbb"; end; end
         end
-        List(:bullet, false) do
+        List(:bullet, true) do
             Item() do; Paragraph() do; "aaa"; end; end
             Item() do
                 Paragraph() do; "bbb"; end
@@ -146,6 +146,20 @@ using Test
                 end
             end
             Item() do; Paragraph() do; "ddd"; end; end
+        end
+    end
+    @test convert(Node, Markdown.md"""
+    * Foo
+
+      Bar
+    * Baz
+    """) == @ast Document() do
+        List(:bullet, false) do
+            Item() do
+                Paragraph() do; "Foo"; end
+                Paragraph() do; "Bar"; end
+            end
+            Item() do; Paragraph() do; "Baz"; end; end
         end
     end
 
