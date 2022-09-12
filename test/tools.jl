@@ -1,5 +1,6 @@
 using MarkdownAST: MarkdownAST, copy_tree, tablerows, tablesize,
-    Node, Table, TableHeader, TableBody, TableRow, TableCell
+    Node, Table, TableHeader, TableBody, TableRow, TableCell,
+    InvalidChildException
 using Test
 
 @testset "Tools" begin
@@ -25,6 +26,10 @@ using Test
     end
     @test x3 != x0
     @test first(x3.children).next.element isa Code
+
+    @test_throws InvalidChildException copy_tree(x0) do node, element
+        element isa Link ? Paragraph() : element
+    end
 
     # Table helper functions
     @test_throws ErrorException tablerows(Node(Document()))

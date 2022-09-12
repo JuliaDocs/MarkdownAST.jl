@@ -10,19 +10,22 @@ copied node corresponds to `node`.
 
 The function `f` should have the signature `(::Node, ::AbstractElement) -> AbstractElement`,
 and it gets passed the current node being copied and its element. It must return an instance
-of some [`AbstractElement`](@ref), which will be assigned to the
-By default, `copy_tree` performs a `deepcopy` of both the element (`.element`) and the node
-metadata (`.meta`).
+of some [`AbstractElement`](@ref), which will then be assigned to the `.element` field of
+the copied node. By default, `copy_tree` performs a `deepcopy` of both the element
+(`.element`) and the node metadata (`.meta`).
 
 # Extended help
 
-As by default `copy_tree` performs as shallow copy of the element, it is possible that in some
-cases the copied tree will share some state with the original tree. If that is a problem,
-`deepcopy` could be used instead:
+For example, to perform a `copy` instead of `deepcopy` on the elements, `copy_tree` can be
+called as follows
 
 ```julia
-copy_tree((_, e) -> deepcopy(e), node::Node)
+copy_tree((_, e) -> copy(e), node::Node)
 ```
+
+Note that `copy_tree` does not allow the construction of invalid trees, and element
+replacements that require invalid parent-child relationships (e.g. a block element as a child
+to an element expecting inlines) will throw an error.
 """
 function copy_tree end
 function copy_tree(f, root::Node{M}) where M
