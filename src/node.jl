@@ -46,8 +46,8 @@ underlying fields of the struct should not be accessed directly.
   with the value set to `nothing` if there is no such node
 - `.parent :: Union{Node{M},Nothing}`: access the parent node of this node, with the value
   set to `nothing` if the node does not have a parent
-- `.children`: an iterable object that can be used to acces and modify the children of the
-  node
+- `.children`: an iterable object of type [`NodeChildren`](@ref) that can be used to access
+  and modify the child nodes of this node
 
 The `.children` field is implemented with a wrapper type that implemements the iteration
 protocol. However, the exact type information etc. is an implementation detail, and one
@@ -197,9 +197,18 @@ end
 # The precise types etc of the iterator of the child nodes is considered to be an
 # implementation detail. It should only be constructed by calling the relevant public APIs.
 # In practice, the argument to ChildrenIterator is simply the node where the iterator starts
+"""
+    struct NodeChildren
+
+The type of the the `.children` property of a [`Node`](@ref) which acts as an iterator over
+the children of a node. This type is mostly considered to be an implementation detail, and
+only has the following publicly defined APIs:
+
+* The name of the type `NodeChildren`, so that it could be dispatched on.
+* The `.parent :: Node` field that allows the user to access the parent node of the children.
+"""
 struct NodeChildren{T <: Node}
     parent :: T
-
     NodeChildren(parent::T) where {T <: Node} = new{T}(parent)
 end
 function Base.iterate(children::NodeChildren{T}, state::Union{T,Nothing} = nothing) where {T <: Node}
@@ -208,7 +217,7 @@ function Base.iterate(children::NodeChildren{T}, state::Union{T,Nothing} = nothi
 end
 
 """
-    eltype(node.children) = Node{M}
+    eltype(node.children::NodeChildren) = Node{M}
 
 Returns the exact `Node` type of the tree, corresponding to the type of the elements of the
 `.children` iterator.
@@ -216,7 +225,7 @@ Returns the exact `Node` type of the tree, corresponding to the type of the elem
 Base.eltype(::Type{NodeChildren{T}}) where T = T
 
 """
-    length(node.children) -> Int
+    length(node.children::NodeChildren) -> Int
 
 Returns the number of children of `node :: Node`.
 
@@ -235,7 +244,7 @@ function Base.length(children::NodeChildren)
 end
 
 """
-    first(node.children) -> Node
+    first(node.children::NodeChildren) -> Node
 
 Returns the first child of the `node :: Node`, or throws an error if the node has no
 children.
@@ -248,7 +257,7 @@ function Base.first(children::NodeChildren{T}) where T
 end
 
 """
-    last(node.children) -> Node
+    last(node.children::NodeChildren) -> Node
 
 Returns the last child of the `node :: Node`, or throws an error if the node has no
 children.
@@ -261,7 +270,7 @@ function Base.last(children::NodeChildren{T}) where T
 end
 
 """
-    isemtpy(node.children) -> Bool
+    isemtpy(node.children::NodeChildren) -> Bool
 
 Can be called on the `.children` field of a `node :: Node` to determine whether or not the
 node has any child nodes.
@@ -269,7 +278,7 @@ node has any child nodes.
 Base.isempty(children::NodeChildren) = !haschildren(children.parent)
 
 """
-    Base.push!(node.children, child::Node) -> Node
+    Base.push!(node.children::NodeChildren, child::Node) -> NodeChildren
 
 Adds `child` as the last child node of `node :: Node`. If `child` is part of another tree,
 then it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the iterator over
@@ -305,7 +314,7 @@ function Base.push!(::Node, ::Any)
 end
 
 """
-    Base.pushfirst!(node.children, child::Node) -> Node
+    Base.pushfirst!(node.children::NodeChildren, child::Node) -> NodeChildren
 
 Adds `child` as the first child node of `node :: Node`. If `child` is part of another tree,
 then it is unlinked from that tree first (see [`unlink!`](@ref)). Returns the iterator over

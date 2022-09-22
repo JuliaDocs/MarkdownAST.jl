@@ -19,11 +19,12 @@ Base.:(==)(::Node{T}, ::Node{T}) where T
 ## Accessing child nodes
 
 Internally, to store the children, a node simply stores the reference to the first and the last child node, and each child stores the references to the next and previous child.
-The `.children` property is implemented simply as a lazy iterator that traverses the linked list.
+The `.children` property is implemented simply as a lazy iterator of type [`NodeChildren`](@ref) that traverses the linked list.
 As such, some operations, such as determining the number of children a node has with [`length`](@ref Base.length(::NodeChildren)), can have unexpected ``O(n)`` complexity.
 
 ```@docs
 haschildren
+NodeChildren
 Base.eltype(::Type{NodeChildren{T}}) where T
 Base.length(::NodeChildren)
 Base.isempty(::NodeChildren)
