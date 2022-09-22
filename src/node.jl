@@ -60,8 +60,10 @@ should only rely on the following documented APIs:
   [`last`](@ref Base.last(::NodeChildren)),
   [`isempty`](@ref Base.isempty(::NodeChildren))
 - Appending or prepending new children to a parent node can be done with the
-  [`push!`](@ref Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}) and
-  [`pushfirst!`](@ref Base.pushfirst!(children::NodeChildren{T}, child::T) where {T <: Node})
+  [`push!`](@ref Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}),
+  [`pushfirst!`](@ref Base.pushfirst!(children::NodeChildren{T}, child::T) where {T <: Node}),
+  [`append!`](@ref Base.append!(::NodeChildren{T}, ::Any) where T),
+  and [`prepend!`](@ref Base.prepend!(::NodeChildren{T}, ::Any) where T)
   methods
 
 Other ways to work with child nodes that do not directly reference `.children` are:
@@ -399,6 +401,50 @@ function insert_before!(node::T, sibling::T) where {T <: Node}
         insert_after!(node.previous, sibling)
     end
     return node
+end
+
+"""
+    append!(node.children::NodeChildren, children) -> NodeChildren
+
+Adds all the elements of the iterable `children` to the end of the list of children of `node`.
+If any of `children` are part of another tree, then they are unlinked from that tree first
+(see [`unlink!`](@ref)). Returns the iterator over children.
+
+!!! warning "Error during an append"
+
+    The operation is not atomic, and an error during an `append!` (e.g. due to an element of
+    the wrong type in `children`) can result in a partial append of the new children, similar
+    to how `append!` behaves with arrays
+    (see [JuliaLang/julia#15868](https://github.com/JuliaLang/julia/issues/15868)).
+"""
+function Base.append!(nodechildren::NodeChildren{T}, children) where T
+    for child in children
+        isa(child, T) || throw(ArgumentError("invalid element type ($(typeof(child))) in children, expected $T"))
+        push!(nodechildren, child)
+    end
+    return nodechildren
+end
+
+"""
+    prepend!(node.children::NodeChildren, children) -> NodeChildren
+
+Adds all the elements of the iterable `children` to the beginning of the list of children of `node`.
+If any of `children` are part of another tree, then they are unlinked from that tree first
+(see [`unlink!`](@ref)). Returns the iterator over children.
+
+!!! warning "Error during a prepend"
+
+    The operation is not atomic, and an error during a `prepend!` (e.g. due to an element of
+    the wrong type in `children`) can result in a partial prepend of the new children, similar
+    to how `append!` behaves with arrays
+    (see [JuliaLang/julia#15868](https://github.com/JuliaLang/julia/issues/15868)).
+"""
+function Base.prepend!(nodechildren::NodeChildren{T}, children) where T
+    for child in Iterators.reverse(children)
+        isa(child, T) || throw(ArgumentError("invalid element type ($(typeof(child))) in children, expected $T"))
+        pushfirst!(nodechildren, child)
+    end
+    return nodechildren
 end
 
 # Check if this is a root node. Next and previous should also be nothing, but this is not

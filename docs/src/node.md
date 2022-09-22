@@ -53,6 +53,8 @@ insert_before!
 insert_after!
 Base.push!(::NodeChildren{T}, ::T) where {T <: Node}
 Base.pushfirst!(::NodeChildren{T}, ::T) where {T <: Node}
+Base.append!(::NodeChildren{T}, ::Any) where T
+Base.prepend!(::NodeChildren{T}, ::Any) where T
 ```
 
 !!! note "Mutating the .children property"

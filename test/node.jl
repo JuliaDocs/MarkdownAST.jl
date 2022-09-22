@@ -1,6 +1,6 @@
 using MarkdownAST: MarkdownAST,
     Node, haschildren, @ast, copy_tree,
-    Document, Paragraph, Strong, Link, BlockQuote, CodeBlock, HTMLBlock,
+    Document, Paragraph, Strong, Link, BlockQuote, CodeBlock, HTMLBlock, Heading, Code, DisplayMath,
     NodeChildren
 using Test
 
@@ -193,4 +193,18 @@ _startswith(prefix) = s -> startswith(s, prefix)
       end
     end
     """
+
+    # append! and prepend!
+    n = @ast Document() do
+        DisplayMath("")
+        DisplayMath("")
+    end
+    cs = Node.([Paragraph(), CodeBlock("", ""), BlockQuote()])
+    @test append!(n.children, cs) isa NodeChildren
+    @test typeof.(getproperty.(n.children, :element)) == [DisplayMath, DisplayMath, Paragraph, CodeBlock, BlockQuote]
+    @test prepend!(n.children, cs) isa NodeChildren
+    @test typeof.(getproperty.(n.children, :element)) == [Paragraph, CodeBlock, BlockQuote, DisplayMath, DisplayMath]
+    # test, but with a generic iterator
+    @test append!(n.children, c for c in cs) isa NodeChildren
+    @test typeof.(getproperty.(n.children, :element)) == [DisplayMath, DisplayMath, Paragraph, CodeBlock, BlockQuote]
 end
