@@ -207,4 +207,20 @@ _startswith(prefix) = s -> startswith(s, prefix)
     # test, but with a generic iterator
     @test append!(n.children, c for c in cs) isa NodeChildren
     @test typeof.(getproperty.(n.children, :element)) == [DisplayMath, DisplayMath, Paragraph, CodeBlock, BlockQuote]
+
+    # @ast macro with variables and function calls
+    inner_tree = @ast Paragraph() do; "foo"; end
+    el(x) = x ? Document() : BlockQuote()
+    interp_tree = @ast el(true) do
+        Paragraph()
+        inner_tree
+        el(false)
+    end
+    @test interp_tree == @ast Document() do
+        Paragraph()
+        Paragraph() do
+            "foo"
+        end
+        BlockQuote()
+    end
 end

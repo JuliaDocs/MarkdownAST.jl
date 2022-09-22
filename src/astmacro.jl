@@ -10,7 +10,10 @@ The `markdown-node-expression` must be either:
    such as a constructor call (e.g. `Paragraph()`), function call returning an element, or a
    variable pointing to an element.
 
-2. A `do`-block, with the function call part being an element (as above), and the contents
+2. A variable or an expression returning or pointing to a `Node` object, which will then get
+   unlinked from its current tree and pushed as a child (together with all of its descendents).
+
+3. A `do`-block, with the function call part being an element (as above), and the contents
    of the `do`-block a sequence of other node expressions, i.e.
 
    ```julia
@@ -104,7 +107,13 @@ end
 function container_node_expr(container)
     quote
         let c = $(esc(container))
-            Node(c isa AbstractString ? Text(c) : c)
+            if c isa AbstractString
+                Node(Text(c))
+            elseif c isa Node
+                c
+            else
+                Node(c)
+            end
         end
     end
 end
