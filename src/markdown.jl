@@ -287,7 +287,7 @@ represent the image description.
 # Constructors
 
 ```julia
-Link(destination::AbstractString, title::AbstractString)
+Image(destination::AbstractString, title::AbstractString)
 ```
 """
 mutable struct Image <: AbstractInline
