@@ -55,10 +55,10 @@ Also, this packages does not provide a parser, and the users are encouraged to c
 [github-actions-img]: https://github.com/JuliaDocs/MarkdownAST.jl/actions/workflows/CI.yml/badge.svg
 [github-actions-url]: https://github.com/JuliaDocs/MarkdownAST.jl/actions/workflows/CI.yml
 [docs-stable-img]: https://img.shields.io/badge/documentation-stable-blue.svg
-[docs-stable-url]: https://juliadocs.github.io/MarkdownAST.jl/stable/
+[docs-stable-url]: https://markdownast.juliadocs.org/stable/
 [codecov-img]: https://codecov.io/gh/JuliaDocs/MarkdownAST.jl/branch/main/graph/badge.svg?token=91XPUAQ2WE
 [codecov-url]: https://codecov.io/gh/JuliaDocs/MarkdownAST.jl
 
 [ast-wiki]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
-[mdast-astmacro]: https://juliadocs.github.io/MarkdownAST.jl/stable/astmacro/#MarkdownAST.@ast
-[mdast-node]: https://juliadocs.github.io/MarkdownAST.jl/stable/node/#MarkdownAST.Node
+[mdast-astmacro]: https://markdownast.juliadocs.org/stable/astmacro/#MarkdownAST.@ast
+[mdast-node]: https://markdownast.juliadocs.org/stable/node/#MarkdownAST.Node
