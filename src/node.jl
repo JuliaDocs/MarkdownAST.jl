@@ -418,7 +418,7 @@ If any of `children` are part of another tree, then they are unlinked from that 
     (see [JuliaLang/julia#15868](https://github.com/JuliaLang/julia/issues/15868)).
 """
 function Base.append!(nodechildren::NodeChildren{T}, children) where T
-    for child in children
+    for child in collect(children)
         isa(child, T) || throw(ArgumentError("invalid element type ($(typeof(child))) in children, expected $T"))
         push!(nodechildren, child)
     end
@@ -440,7 +440,7 @@ If any of `children` are part of another tree, then they are unlinked from that 
     (see [JuliaLang/julia#15868](https://github.com/JuliaLang/julia/issues/15868)).
 """
 function Base.prepend!(nodechildren::NodeChildren{T}, children) where T
-    for child in Iterators.reverse(children)
+    for child in Iterators.reverse(collect(children))
         isa(child, T) || throw(ArgumentError("invalid element type ($(typeof(child))) in children, expected $T"))
         pushfirst!(nodechildren, child)
     end
