@@ -1,10 +1,10 @@
 # MarkdownAST.jl changelog
 
-## Version `v0.10.1`
+## Version `v0.1.1`
 
 * ![Bugfix][badge-bugfix] `append!` and `prepend!` methods now correctly append nodes from a `node.children` iterator. ([#16][github-16])
 
-## Version `v0.10.0`
+## Version `v0.1.0`
 
 Initial release.
 
