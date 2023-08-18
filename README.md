@@ -4,6 +4,7 @@
 [![Documentation][docs-stable-img]][docs-stable-url]
 [![GitHub Actions CI][github-actions-img]][github-actions-url]
 [![CodeCov][codecov-img]][codecov-url]
+[![PkgEval][pkgeval-img]][pkgeval-url]
 
 A Julia package for working with Markdown documents in an [abstract syntax tree][ast-wiki] representation.
 As an example, the following Markdown
@@ -58,6 +59,8 @@ Also, this packages does not provide a parser, and the users are encouraged to c
 [docs-stable-url]: https://markdownast.juliadocs.org/stable/
 [codecov-img]: https://codecov.io/gh/JuliaDocs/MarkdownAST.jl/branch/main/graph/badge.svg?token=91XPUAQ2WE
 [codecov-url]: https://codecov.io/gh/JuliaDocs/MarkdownAST.jl
+[pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/M/MarkdownAST.svg
+[pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/M/MarkdownAST.html
 
 [ast-wiki]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
 [mdast-astmacro]: https://markdownast.juliadocs.org/stable/astmacro/#MarkdownAST.@ast
