@@ -115,7 +115,7 @@ function Base.getproperty(node::Node{T}, name::Symbol) where T
         getfield(node, :meta)
     else
         # TODO: error("type Node does not have property $(name)")
-        @debug "Accessing private field $(name) of Node" stacktrace()
+        @debug "Accessing private field $(name) of Node"
         getfield(node, name)
     end
 end
@@ -127,11 +127,11 @@ function Base.setproperty!(node::Node, name::Symbol, x)
         setfield!(node, :meta, x)
     elseif name in propertynames(node)
         # TODO: error("Unable to set property $(name) for Node")
-        @debug "Setting private field :$(name) of Node" stacktrace()
+        @debug "Setting private field :$(name) of Node"
         setfield!(node, name, x)
     else
         # TODO: error("type Node does not have property $(name)")
-        @debug "Accessing private field :$(name) of Node" stacktrace()
+        @debug "Accessing private field :$(name) of Node"
         setfield!(node, name, x)
     end
 end
