@@ -1,5 +1,9 @@
 # MarkdownAST.jl changelog
 
+## Unreleased
+
+* ![Feature][badge-feature] Implemented `replace` and `replace!` to safely mutate trees in arbitrary ways, and `empty!(node.children)` to remove all the children of a node
+
 ## Version `v0.1.1`
 
 * ![Bugfix][badge-bugfix] `append!` and `prepend!` methods now correctly append nodes from a `node.children` iterator. ([#16][github-16])
