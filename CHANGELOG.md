@@ -1,5 +1,9 @@
 # MarkdownAST.jl changelog
 
+## Version `v0.1.2`
+
+* ![Bugfix][badge-bugfix] The `getproperty` and `setproperty!` methods no longer print unnecessary debug log. ([#19][github-19])
+
 ## Version `v0.1.1`
 
 * ![Bugfix][badge-bugfix] `append!` and `prepend!` methods now correctly append nodes from a `node.children` iterator. ([#16][github-16])
@@ -10,6 +14,7 @@ Initial release.
 
 <!-- issue link definitions -->
 [github-16]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/16
+[github-19]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/19
 <!-- end of issue link definitions -->
 
 [markdownast]: https://github.com/JuliaDocs/MarkdownAST.jl
