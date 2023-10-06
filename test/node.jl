@@ -325,7 +325,7 @@ end
     end
     # Call `replace` just on the second paragraph
     p = replace(_flatten_text ∘ _remove_link, first(n.children).next.next)
-    @test isnothing(p.parent)
+    @test p.parent === nothing
     # Note that _flatten_text didn't have any effect because `replace` doesn't
     # touch the root node (but it did replace the link)
     @test p == @ast Paragraph() do
