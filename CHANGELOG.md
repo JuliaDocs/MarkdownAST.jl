@@ -3,6 +3,7 @@
 ## Unreleased
 
 * ![Feature][badge-feature] Implemented `replace` and `replace!` to safely mutate trees in arbitrary ways, and `empty!(node.children)` to remove all the children of a node
+* ![Bugfix][badge-bugfix] The `getproperty` and `setproperty!` methods no longer print unnecessary debug log. ([#19][github-19])
 
 ## Version `v0.1.1`
 
@@ -14,6 +15,7 @@ Initial release.
 
 <!-- issue link definitions -->
 [github-16]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/16
+[github-19]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/19
 <!-- end of issue link definitions -->
 
 [markdownast]: https://github.com/JuliaDocs/MarkdownAST.jl
