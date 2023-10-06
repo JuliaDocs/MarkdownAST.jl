@@ -45,9 +45,11 @@ Changing the structure of the tree in any other way should generally be avoided,
 !!! warning "Mutating the tree while traversing"
 
     Mutating the structure of the tree while traversing it with some iterator (e.g. `.children` or one of the [AbstractTrees iterators](@ref "Iteration over trees")) can lead to unexpected behavior and should generally be avoided.
-    Updating the `.element` of a node, on the other hand, is fine.
+    Updating the `.element` of a node while traversing, on the other hand, is fine. In general, [`replace!`](@ref) can be used to mutate a tree in arbitrary ways.
 
 ```@docs
+Base.replace(::Function, ::T) where {T <: Node}
+Base.replace!(::Function, ::Node)
 unlink!
 insert_before!
 insert_after!
@@ -55,6 +57,7 @@ Base.push!(::NodeChildren{T}, ::T) where {T <: Node}
 Base.pushfirst!(::NodeChildren{T}, ::T) where {T <: Node}
 Base.append!(::NodeChildren{T}, ::Any) where T
 Base.prepend!(::NodeChildren{T}, ::Any) where T
+Base.empty!(::NodeChildren)
 ```
 
 !!! note "Mutating the .children property"

@@ -1,11 +1,50 @@
 using MarkdownAST: MarkdownAST,
-    Node, haschildren, @ast, copy_tree,
+    Node, haschildren, @ast, copy_tree, unlink!,
     Document, Paragraph, Strong, Link, BlockQuote, CodeBlock, HTMLBlock, Heading, Code, DisplayMath,
     NodeChildren
 using Test
 
 # Compat-ish.. startswith(prefix) was added in 1.5:
 _startswith(prefix) = s -> startswith(s, prefix)
+
+
+# For `replace`: replace link with its children -- cf. docstring of `replace`,
+# but for the test we'll do something fancier by combining it with the
+# `_flatten_text` below.
+function _remove_link(node)
+    if (node isa Node) && (node.element isa MarkdownAST.Link)
+        return [copy_tree(child) for child in node.children]
+    else
+        return node
+    end
+end
+
+# For `replace`: combine consecutive `Text` children in paragraph
+function _flatten_text(node)
+    if (node isa Node) && (node.element isa MarkdownAST.Paragraph)
+        new_paragraph = typeof(node)(node.element, deepcopy(node.meta))
+        node = copy_tree(node)  # so we can unlink children without mutating
+        push!(new_paragraph.children, first(node.children))
+        while haschildren(node)
+            child = first(node.children)
+            if child.element isa MarkdownAST.Text
+                last_child = last(new_paragraph.children)
+                if last_child.element isa MarkdownAST.Text
+                    last_child.element.text *= child.element.text
+                    unlink!(child)
+                else
+                    push!(new_paragraph.children, child)
+                end
+            else
+                push!(new_paragraph.children, child)
+            end
+        end
+        return new_paragraph
+    else
+        return node
+    end
+end
+
 
 @testset "Node" begin
     # Basic constructors
@@ -220,6 +259,127 @@ _startswith(prefix) = s -> startswith(s, prefix)
     @test prepend!(n3.children, n2.children) isa NodeChildren
     @test typeof.(getproperty.(n3.children, :element)) == [Heading, DisplayMath, DisplayMath, Paragraph, CodeBlock, BlockQuote, Heading]
     @test isempty(n2.children)
+
+    # empty!
+    @test length(n3.children) == 7
+    empty_children = empty!(n3.children)
+    @test isempty(n3.children)
+    @test empty_children === n3.children
+
+    # replace and replace!
+    n = @ast MarkdownAST.Document() do
+      MarkdownAST.Heading(1) do
+        MarkdownAST.Text("Title")
+      end
+      MarkdownAST.Paragraph() do
+        MarkdownAST.Text("This is a paragraph with a ")
+        MarkdownAST.Link("#title", "") do
+          MarkdownAST.Text("link with ")
+          MarkdownAST.Code("code")
+          MarkdownAST.Text(", ")
+          MarkdownAST.InlineMath("math")
+          MarkdownAST.Text(", and ")
+          MarkdownAST.Emph() do
+            MarkdownAST.Text("italics")
+          end
+          MarkdownAST.Text(" in its description")
+        end
+        MarkdownAST.Text(".")
+      end
+      MarkdownAST.Paragraph() do
+        MarkdownAST.Text("There's a second paragraph with another ")
+        MarkdownAST.Link("#title", "") do
+          MarkdownAST.Text("link")
+        end
+        MarkdownAST.Text(".")
+      end
+      MarkdownAST.Paragraph() do
+        MarkdownAST.Text("This concludes the document.")
+      end
+    end
+    orig_n = copy_tree(n)
+    n2 = replace(_flatten_text ∘ _remove_link, n)
+    @test !(n2 === n)
+    @test n == orig_n  # didn't mutate original
+    @test n2 == @ast Document() do
+      Heading(1) do
+        MarkdownAST.Text("Title")
+      end
+      Paragraph() do
+        MarkdownAST.Text("This is a paragraph with a link with ")
+        Code("code")
+        MarkdownAST.Text(", ")
+        MarkdownAST.InlineMath("math")
+        MarkdownAST.Text(", and ")
+        MarkdownAST.Emph() do
+          MarkdownAST.Text("italics")
+        end
+        MarkdownAST.Text(" in its description.")
+      end
+      Paragraph() do
+        MarkdownAST.Text("There's a second paragraph with another link.")
+      end
+      Paragraph() do
+        MarkdownAST.Text("This concludes the document.")
+      end
+    end
+    # Call `replace` just on the second paragraph
+    p = replace(_flatten_text ∘ _remove_link, first(n.children).next.next)
+    @test isnothing(p.parent)
+    # Note that _flatten_text didn't have any effect because `replace` doesn't
+    # touch the root node (but it did replace the link)
+    @test p == @ast Paragraph() do
+      MarkdownAST.Text("There's a second paragraph with another ")
+      MarkdownAST.Text("link")
+      MarkdownAST.Text(".")
+    end
+    p2 = replace!(_flatten_text ∘ _remove_link, first(n.children).next.next)
+    @test !(p2 === p)
+    @test p2 == p
+    # We've replaced the 2nd paragraph in-place, so the result will show up in `n`
+    @test n == @ast Document() do
+      Heading(1) do
+        MarkdownAST.Text("Title")
+      end
+      Paragraph() do
+        MarkdownAST.Text("This is a paragraph with a ")
+        Link("#title", "") do
+          MarkdownAST.Text("link with ")
+          Code("code")
+          MarkdownAST.Text(", ")
+          MarkdownAST.InlineMath("math")
+          MarkdownAST.Text(", and ")
+          MarkdownAST.Emph() do
+            MarkdownAST.Text("italics")
+          end
+          MarkdownAST.Text(" in its description")
+        end
+        MarkdownAST.Text(".")
+      end
+      Paragraph() do
+        MarkdownAST.Text("There's a second paragraph with another ")
+        MarkdownAST.Text("link")
+        MarkdownAST.Text(".")
+      end
+      Paragraph() do
+        MarkdownAST.Text("This concludes the document.")
+      end
+    end
+    replace!(_flatten_text ∘ _remove_link, n)
+    # We've now replaced the rest of `n` in-place, so we should get the same
+    # final result as for `n2 = replace(..., n)`.
+    @test !(n === n2)
+    @test n == n2
+    # Test check for invalid `f` (must return Node or Vector of nodes)
+    @test_throws ArgumentError begin
+        replace(n) do node
+            if node.element isa MarkdownAST.InlineMath
+                return nothing
+            else
+                return node
+            end
+        end
+    end
 
     # @ast macro with variables and function calls
     inner_tree = @ast Paragraph() do; "foo"; end
