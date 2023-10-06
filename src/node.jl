@@ -58,7 +58,8 @@ should only rely on the following documented APIs:
   [`eltype`](@ref Base.eltype(::Type{NodeChildren{T}}) where T),
   [`first`](@ref Base.first(::NodeChildren)),
   [`last`](@ref Base.last(::NodeChildren)),
-  [`isempty`](@ref Base.isempty(::NodeChildren))
+  [`isempty`](@ref Base.isempty(::NodeChildren)),
+  [`empty!`](@ref Base.empty!(::NodeChildren))
 - Appending or prepending new children to a parent node can be done with the
   [`push!`](@ref Base.push!(children::NodeChildren{T}, child::T) where {T <: Node}),
   [`pushfirst!`](@ref Base.pushfirst!(children::NodeChildren{T}, child::T) where {T <: Node}),
@@ -80,6 +81,7 @@ trees:
 * Removing a node from a tree: [`unlink!`](@ref)
 * Two trees can be compared with the
   [`==` operator](@ref Base.:(==)(x::Node{T}, y::Node{T}) where T)
+* Mutating a tree: [`replace!`](@ref) and [`replace`](@ref)
 """
 mutable struct Node{M}
     t :: AbstractElement
@@ -279,6 +281,20 @@ node has any child nodes.
 """
 Base.isempty(children::NodeChildren) = !haschildren(children.parent)
 
+
+"""
+    empty!(node.children::NodeChildren) -> NodeChildren
+
+Removes all the `children` of a `node`.
+"""
+function Base.empty!(children::NodeChildren)
+    while haschildren(children.parent)
+        unlink!(first(children))
+    end
+    return children
+end
+
+
 """
     Base.push!(node.children::NodeChildren, child::Node) -> NodeChildren
 
@@ -446,6 +462,66 @@ function Base.prepend!(nodechildren::NodeChildren{T}, children) where T
     end
     return nodechildren
 end
+
+"""
+    replace(f::Function, root::Node) -> Node
+
+Creates a copy of the tree where all child nodes of `root` are recursively
+(post-order depth-first) replaced by the result of `f(child)`.
+
+The function `f(child::Node)` must return either a new [`Node`](@ref) to
+replace `child` or a Vector of nodes that will be inserted as siblings,
+replacing `child`.
+
+Note that `replace` does not allow the construction of invalid trees, and
+element replacements that require invalid parent-child relationships (e.g., a
+block element as a child to an element expecting inlines) will throw an error.
+
+# Example
+
+The following snippet removes links from the given AST. That is, it replaces
+[`Link`](@ref) nodes with their link text (which may contain nested inline
+markdown elements):
+
+```julia
+new_mdast = replace(mdast) do node
+    if node.element isa MarkdownAST.Link
+        return [MarkdownAST.copy_tree(child) for child in node.children]
+    else
+        return node
+    end
+end
+```
+"""
+function Base.replace(f::Function, root::Node{M}) where {M}
+    new_root = Node{M}(root.element, deepcopy(root.meta))
+    for child in root.children
+        replaced_child = replace(f, child)
+        transformed = f(replaced_child)
+        if transformed isa Node
+            push!(new_root.children, transformed)
+        elseif transformed isa Vector
+            append!(new_root.children, transformed)
+        else
+            throw(ArgumentError("Function `f` in `replace(f, root::MarkdownAST.Node)` must return either a Node or a Vector of nodes, not $(repr(typeof(transformed)))"))
+        end
+    end
+    return new_root
+end
+
+
+"""
+    replace!(f::Function, root::Node) -> Node
+
+Acts like [`replace(f, root)`](@ref replace), but modifies `root` in-place.
+"""
+function Base.replace!(f::Function, root::Node)
+    new_root = replace(f, root)
+    empty!(root.children)
+    append!(root.children, new_root.children)
+    return root
+end
+
 
 # Check if this is a root node. Next and previous should also be nothing, but this is not
 # enforced. This function is currently not part of the public API.
