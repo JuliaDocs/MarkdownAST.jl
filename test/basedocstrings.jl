@@ -28,7 +28,7 @@ function allmodules()
     submodules = find_submodules(Base)
     for stdlib in list_stdlibs()
         Base.eval(@__MODULE__, :(import $stdlib))
-        m = getfield(@__MODULE__, stdlib)
+        m = Base.invokelatest(getfield, @__MODULE__, stdlib)
         find_submodules!(submodules, m)
     end
     return submodules
@@ -51,7 +51,7 @@ end
 function alldocstrings()
     mds = Markdown.MD[]
     for m in allmodules()
-        moduledocstrings!(mds, m)
+        Base.invokelatest(moduledocstrings!, mds, m)
     end
     return mds
 end
