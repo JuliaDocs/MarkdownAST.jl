@@ -16,7 +16,7 @@ md = @ast Document() do
         Strong() do; "AbstractTrees"; end
         "."
     end
-    Paragraph() do; "The use it, load the package with"; end
+    Paragraph() do; "To use it, load the package with"; end
     CodeBlock("julia", "using AbstractTrees")
 end
 nothing # hide
