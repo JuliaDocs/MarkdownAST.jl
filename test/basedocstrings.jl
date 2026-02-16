@@ -6,8 +6,8 @@ using Markdown, Pkg, Test
 
 function list_stdlibs()
     stdlibs = Symbol[]
-    for stdlib in readdir(Pkg.stdlib_dir())
-        stdlib_path = joinpath(Pkg.stdlib_dir(), stdlib)
+    for stdlib in readdir(Sys.STDLIB)
+        stdlib_path = joinpath(Sys.STDLIB, stdlib)
         isdir(stdlib_path) || continue
         endswith(stdlib, "_jll") && continue
         push!(stdlibs, Symbol(stdlib))
