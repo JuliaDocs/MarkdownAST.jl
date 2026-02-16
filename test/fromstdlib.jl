@@ -126,6 +126,7 @@ using Test
 
     @test convert(Node, Markdown.md"""
     1. aaa
+
     2. bbb
 
     * aaa
@@ -133,7 +134,7 @@ using Test
       - ccc
     * ddd
     """) == @ast Document() do
-        List(:ordered, true) do
+        List(:ordered, false) do
             Item() do; Paragraph() do; "aaa"; end; end
             Item() do; Paragraph() do; "bbb"; end; end
         end
@@ -267,13 +268,22 @@ using Test
         end
     end
     # This would lead to a SoftBreak() in CommonMark, but not in Markdown
-    @test convert(Node, Markdown.md"""
-    foo
-    bar
-    """) == @ast Document() do
-        Paragraph() do
-            "foo bar"
-        end
+    let ast = convert(Node, Markdown.md"""
+        foo
+        bar
+        """)
+        @test ast in (
+            @ast(Document() do
+                Paragraph() do
+                    "foo bar"  # In Julia 1.14, whitespaces are "normalized"
+                end
+            end),
+            @ast(Document() do
+                Paragraph() do
+                    "foo\nbar"  # In Julia 1.14, the newline is preserved
+                end
+            end),
+        )
     end
 
     # Interpolation
@@ -343,13 +353,21 @@ using Test
     end
 
     # Tests from the Documenter Markdown2 module
-    @test convert(Node, Markdown.parse(raw"""
-    $$
-    f
-    $$
-    """)) == @ast Document() do
-        Paragraph() do; JuliaValue(nothing, :$); end
-        Paragraph() do; "f "; JuliaValue(nothing, :$); end
+    let ast = convert(Node, Markdown.parse(raw"""
+        $$
+        f
+        $$
+        """))
+        @test ast in (
+            @ast(Document() do
+                Paragraph() do; JuliaValue(nothing, :$); end
+                Paragraph() do; "f "; JuliaValue(nothing, :$); end # Julia <= 1.13
+            end),
+            @ast(Document() do
+                Paragraph() do; JuliaValue(nothing, :$); end
+                Paragraph() do; "f\n"; JuliaValue(nothing, :$); end # Julia >= 1.14
+            end),
+        )
     end
     @test convert(Node, Markdown.parse(raw"""
     X $(42) Y
