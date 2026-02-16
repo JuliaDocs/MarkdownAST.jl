@@ -134,6 +134,9 @@ end
 # Inline nodes:
 _convert_inline(nodefn::NodeFn, s::Markdown.Bold) = _convert(nodefn, Strong(), _convert_inline, s.text)
 _convert_inline(nodefn::NodeFn, s::Markdown.Italic) = _convert(nodefn, Emph(), _convert_inline, s.text)
+@static if isdefined(Markdown, :Strikethrough)
+    _convert_inline(nodefn::NodeFn, s::Markdown.Strikethrough) = _convert(nodefn, Strikethrough(), _convert_inline, s.text)
+end
 function _convert_inline(nodefn::NodeFn, s::Markdown.Link)
     # The Base Markdown parser does not parse the title part, so we just default that to
     # an empty string.
