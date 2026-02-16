@@ -3,7 +3,7 @@ using MarkdownAST: MarkdownAST, Node, @ast, Document,
     Paragraph, Heading, CodeBlock, BlockQuote, DisplayMath, ThematicBreak,
     List, Item, FootnoteLink, FootnoteDefinition, Admonition,
     Table, TableHeader, TableBody, TableRow, TableCell,
-    JuliaValue, LineBreak, HTMLBlock
+    JuliaValue, LineBreak, HTMLBlock, HTMLInline
 using Markdown: Markdown
 using Test
 
@@ -364,6 +364,16 @@ using Test
             push!(m.content, Markdown.HTMLBlock(["<div>", "x", "</div>"]))
             @test convert(Node, m) == @ast Document() do
                 HTMLBlock("<div>\nx\n</div>")
+            end
+        end
+    end
+    @static if isdefined(Markdown, :HTMLInline)
+        let m = Markdown.MD()
+            push!(m.content, Markdown.Paragraph([Markdown.HTMLInline("<span>x</span>")]))
+            @test convert(Node, m) == @ast Document() do
+                Paragraph() do
+                    HTMLInline("<span>x</span>")
+                end
             end
         end
     end

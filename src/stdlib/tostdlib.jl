@@ -78,4 +78,8 @@ _convert_element(n::Node, ::Backslash) = "\\"
 else
     _convert_element(::Node, e::HTMLBlock) = Markdown.Code("html", e.html)
 end
-_convert_element(::Node, e::HTMLInline) = Markdown.Code("", e.html)
+@static if isdefined(Markdown, :HTMLInline)
+    _convert_element(::Node, e::HTMLInline) = Markdown.HTMLInline(e.html)
+else
+    _convert_element(::Node, e::HTMLInline) = Markdown.Code("", e.html)
+end

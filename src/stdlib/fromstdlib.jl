@@ -166,6 +166,9 @@ _convert_inline(nodefn::NodeFn, s::Markdown.Image) = @ast Image(s.url, "") do
     s.alt # TODO: if isempty(s.alt), should be just omit adding children here?
 end
 _convert_inline(nodefn::NodeFn, ::Markdown.LineBreak) = nodefn(LineBreak())
+@static if isdefined(Markdown, :HTMLInline)
+    _convert_inline(nodefn::NodeFn, s::Markdown.HTMLInline) = nodefn(HTMLInline(s.content))
+end
 # Non-Commonmark extensions
 _convert_inline(nodefn::NodeFn, s::Markdown.LaTeX) = nodefn(InlineMath(s.formula))
 function _convert_inline(nodefn::NodeFn, s::Markdown.Footnote)

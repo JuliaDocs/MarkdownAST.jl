@@ -282,16 +282,39 @@ struct UnknownBlock <: MarkdownAST.AbstractBlock end
         md = convert(Markdown.MD, ast)
         if isdefined(Markdown, :HTMLBlock)
             @test md.content[1] isa Markdown.HTMLBlock
-            @test convert(Node, md) == @ast MarkdownAST.Document() do
-                HTMLBlock("<html>")
-                Paragraph() do; Code("</html>"); end
+        else
+            @test md.content[1] isa Markdown.Code
+        end
+        if isdefined(Markdown, :HTMLInline)
+            @test md.content[2].content[1] isa Markdown.HTMLInline
+        else
+            @test md.content[2].content[1] isa Markdown.Code
+        end
+        if isdefined(Markdown, :HTMLBlock)
+            if isdefined(Markdown, :HTMLInline)
+                @test convert(Node, md) == @ast MarkdownAST.Document() do
+                    HTMLBlock("<html>")
+                    Paragraph() do; HTMLInline("</html>"); end
+                end
+            else
+                @test convert(Node, md) == @ast MarkdownAST.Document() do
+                    HTMLBlock("<html>")
+                    Paragraph() do; Code("</html>"); end
+                end
             end
         else
-            # Markdown can't represent raw HTML, so it gets converted into Code
-            # nodes instead
-            @test convert(Node, md) == @ast MarkdownAST.Document() do
-                CodeBlock("html", "<html>")
-                Paragraph() do; Code("</html>"); end
+            if isdefined(Markdown, :HTMLInline)
+                @test convert(Node, md) == @ast MarkdownAST.Document() do
+                    CodeBlock("html", "<html>")
+                    Paragraph() do; HTMLInline("</html>"); end
+                end
+            else
+                # Markdown can't represent raw HTML, so it gets converted into
+                # Code nodes instead.
+                @test convert(Node, md) == @ast MarkdownAST.Document() do
+                    CodeBlock("html", "<html>")
+                    Paragraph() do; Code("</html>"); end
+                end
             end
         end
     end
