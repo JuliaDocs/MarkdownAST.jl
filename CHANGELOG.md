@@ -1,6 +1,6 @@
 # MarkdownAST.jl changelog
 
-## Version `Unreleased`
+## Version `v0.1.3`
 
 * ![Feature][badge-feature] Added support for converting `HTMLBlock` nodes to and from `Markdown.HTMLBlock` when using Julia 1.14+, where the corresponding stdlib type is available.
 * ![Feature][badge-feature] Added support for converting `HTMLInline` nodes to and from `Markdown.HTMLInline` when using Julia 1.14+, where the corresponding stdlib type is available.
