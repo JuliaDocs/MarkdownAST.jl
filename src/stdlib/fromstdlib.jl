@@ -53,6 +53,9 @@ end
 _convert_block(nodefn::NodeFn, b::Markdown.BlockQuote) = _convert(nodefn, BlockQuote(), _convert_block, b.content)
 _convert_block(nodefn::NodeFn, ::Markdown.HorizontalRule) = nodefn(ThematicBreak())
 _convert_block(nodefn::NodeFn, b::Markdown.Code) = nodefn(CodeBlock(b.language, b.code))
+@static if isdefined(Markdown, :HTMLBlock)
+    _convert_block(nodefn::NodeFn, b::Markdown.HTMLBlock) = nodefn(HTMLBlock(join(b.content, '\n')))
+end
 # Non-Commonmark extensions
 _convert_block(nodefn::NodeFn, b::Markdown.Admonition) = _convert(nodefn, Admonition(b.category, b.title), _convert_block, b.content)
 _convert_block(nodefn::NodeFn, b::Markdown.LaTeX) = nodefn(DisplayMath(b.formula))

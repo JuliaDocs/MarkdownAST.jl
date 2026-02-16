@@ -1,5 +1,9 @@
 # MarkdownAST.jl changelog
 
+## Version `Unreleased`
+
+* ![Feature][badge-feature] Added support for converting `HTMLBlock` nodes to and from `Markdown.HTMLBlock` when using Julia 1.14+, where the corresponding stdlib type is available.
+
 ## Version `v0.1.2`
 
 * ![Feature][badge-feature] Implemented `replace` and `replace!` to safely mutate trees in arbitrary ways, and `empty!(node.children)` to remove all the children of a node. ([#22][github-22])

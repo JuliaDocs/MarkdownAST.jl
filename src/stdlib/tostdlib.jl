@@ -66,5 +66,9 @@ _convert_element(n::Node, ::LineBreak) = Markdown.LineBreak()
 _convert_element(n::Node, ::SoftBreak) = " "
 _convert_element(n::Node, ::Backslash) = "\\"
 # Raw HTML
-_convert_element(::Node, e::HTMLBlock) = Markdown.Code("html", e.html)
+@static if isdefined(Markdown, :HTMLBlock)
+    _convert_element(::Node, e::HTMLBlock) = Markdown.HTMLBlock(split(e.html, '\n'; keepempty = true))
+else
+    _convert_element(::Node, e::HTMLBlock) = Markdown.Code("html", e.html)
+end
 _convert_element(::Node, e::HTMLInline) = Markdown.Code("", e.html)

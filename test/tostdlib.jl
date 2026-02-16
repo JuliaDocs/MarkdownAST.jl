@@ -264,11 +264,19 @@ struct UnknownBlock <: MarkdownAST.AbstractBlock end
             Paragraph() do; HTMLInline("</html>"); end
         end
         md = convert(Markdown.MD, ast)
-        # Markdown can't represent raw HTML, so it gets converted into Code
-        # nodes instead
-        @test convert(Node, md) == @ast MarkdownAST.Document() do
-            CodeBlock("html", "<html>")
-            Paragraph() do; Code("</html>"); end
+        if isdefined(Markdown, :HTMLBlock)
+            @test md.content[1] isa Markdown.HTMLBlock
+            @test convert(Node, md) == @ast MarkdownAST.Document() do
+                HTMLBlock("<html>")
+                Paragraph() do; Code("</html>"); end
+            end
+        else
+            # Markdown can't represent raw HTML, so it gets converted into Code
+            # nodes instead
+            @test convert(Node, md) == @ast MarkdownAST.Document() do
+                CodeBlock("html", "<html>")
+                Paragraph() do; Code("</html>"); end
+            end
         end
     end
 end

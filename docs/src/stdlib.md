@@ -28,6 +28,7 @@ Due to the differences between the Markdown representations, the following thing
 - In case the standard library AST contains any inline nodes in block context (e.g. as children for `Markdown.MD`), the get wrapped in a [`Paragraph`](@ref) element too.
 - When converting a `Markdown.Table`, the resulting table will be normalized, such as adding empty cells to rows, to make sure that all rows have the same number of cells.
 - For links and images, the `.title` attribute is set to an empty string, since the standard library AST does not support parsing titles.
+- On Julia 1.14 and newer, `Markdown.HTMLBlock` values are converted to [`HTMLBlock`](@ref) elements. On older Julia versions, such nodes do not exist in the standard library AST.
 
 ## Conversion to standard library representation
 
@@ -45,6 +46,7 @@ Due to the differences between the Markdown representations, the following thing
 - The `.title` attribute of [`Link`](@ref) and [`Image`](@ref) elements gets discarded.
 - The standard library does not support storing the child nodes of [`Image`](@ref) elements (i.e. "alt text", `![alt text]()`) as AST, and it is instead reduced to a string with the help of the `Markdown.plain` function.
 - The standard library AST does not have dedicated elements for [`SoftBreak`](@ref) and [`Backslash`](@ref), and these get converted into strings (i.e. text elements) instead.
+- On Julia 1.14 and newer, [`HTMLBlock`](@ref) elements are converted into `Markdown.HTMLBlock`. On older Julia versions they are converted into `Markdown.Code("html", ...)`.
 
 ## Index
 
