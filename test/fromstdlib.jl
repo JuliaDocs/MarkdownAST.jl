@@ -329,7 +329,7 @@ using Test
     # It is theoretically possible to have inline nodes in block context:
     let m = Markdown.MD()
         push!(m.content, "Foo")
-        push!(m.content, Markdown.Link("text", "url"))
+        push!(m.content, Markdown.Link(["text"], "url"))
         @test convert(Node, m) == @ast Document() do
             Paragraph() do
                 "Foo"
