@@ -51,6 +51,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
+      - uses: julia-actions/cache@v2
       - name: Instantiate docs/ environment
         run: julia --color=yes --project=docs/ -e 'using Pkg; Pkg.instantiate()'
       - name: Build and deploy
