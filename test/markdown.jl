@@ -3,7 +3,7 @@ using MarkdownAST: AbstractElement, AbstractBlock, AbstractInline,
     Document,
     Admonition, BlockQuote, CodeBlock, DisplayMath, FootnoteDefinition, HTMLBlock, Heading,
     Item, List, Paragraph, ThematicBreak,
-    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong, JuliaValue,
+    Code, Emph, FootnoteLink, HTMLInline, Image, InlineMath, Link, Strong, Strikethrough, JuliaValue,
     TableComponent, Table, TableHeader, TableBody, TableRow, TableCell,
     LineBreak, SoftBreak, Backslash,
     iscontainer, can_contain, isblock, isinline
@@ -87,7 +87,7 @@ MarkdownAST.iscontainer(e::PseudoInline) = e.iscontainer
     end
 
     # (4) Inlines containing inlines:
-    for e in [Link("url", "title"), Image("url", "title"), Emph(), Strong()]
+    for e in [Link("url", "title"), Image("url", "title"), Emph(), Strong(), Strikethrough()]
         @test iscontainer(e)
         @test ! isblock(e)
         @test isinline(e)

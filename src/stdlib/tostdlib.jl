@@ -41,6 +41,13 @@ _convert_element(::Node, e::InlineMath) = Markdown.LaTeX(e.math)
 _convert_element(::Node, e::JuliaValue) = e.ref
 _convert_element(n::Node, e::Link) = Markdown.Link(_convert_element.(n.children), e.destination)
 _convert_element(n::Node, ::Strong) = Markdown.Bold(_convert_element.(n.children))
+@static if isdefined(Markdown, :Strikethrough)
+    _convert_element(n::Node, ::Strikethrough) = Markdown.Strikethrough(_convert_element.(n.children))
+else
+    function _convert_element(::Node, ::Strikethrough)
+        error("Unable to convert Strikethrough to Markdown stdlib on this Julia version")
+    end
+end
 _convert_element(::Node, e::Text) = e.text
 # Lists
 _convert_element(n::Node, e::List) = Markdown.List(

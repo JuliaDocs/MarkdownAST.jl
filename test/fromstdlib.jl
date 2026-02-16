@@ -1,5 +1,5 @@
 using MarkdownAST: MarkdownAST, Node, @ast, Document,
-    Emph, Strong, InlineMath, Link, Code, Image,
+    Emph, Strong, Strikethrough, InlineMath, Link, Code, Image,
     Paragraph, Heading, CodeBlock, BlockQuote, DisplayMath, ThematicBreak,
     List, Item, FootnoteLink, FootnoteDefinition, Admonition,
     Table, TableHeader, TableBody, TableRow, TableCell,
@@ -46,6 +46,14 @@ using Test
             Link("url://", "") do; "bbb"; end
             " ccc "
             Image("url", "") do; "aaa"; end
+        end
+    end
+
+    @static if isdefined(Markdown, :Strikethrough)
+        @test convert(Node, Markdown.parse("~~xxx~~")) == @ast Document() do
+            Paragraph() do
+                Strikethrough() do; "xxx"; end
+            end
         end
     end
 

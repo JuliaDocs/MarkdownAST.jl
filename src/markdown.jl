@@ -334,6 +334,14 @@ struct Strong <: AbstractInline end
 iscontainer(::Strong) = true
 
 """
+    struct Strikethrough <: AbstractInline
+
+Inline singleton element for strikethrough styling.
+"""
+struct Strikethrough <: AbstractInline end
+iscontainer(::Strikethrough) = true
+
+"""
     mutable struct Code <: AbstractInline
 
 Inline element representing an inline code span.

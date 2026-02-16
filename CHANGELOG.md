@@ -3,6 +3,7 @@
 ## Version `Unreleased`
 
 * ![Feature][badge-feature] Added support for converting `HTMLBlock` nodes to and from `Markdown.HTMLBlock` when using Julia 1.14+, where the corresponding stdlib type is available.
+* ![Feature][badge-feature] Added support for `Strikethrough` nodes when converting to/from the Markdown stdlib AST. This interop requires Julia 1.14+, because `Markdown.Strikethrough` is only available in the stdlib starting there. ([#31][github-31], [#32][github-32])
 
 ## Version `v0.1.2`
 
@@ -21,6 +22,8 @@ Initial release.
 [github-16]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/16
 [github-19]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/19
 [github-22]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/22
+[github-31]: https://github.com/JuliaDocs/MarkdownAST.jl/issues/31
+[github-32]: https://github.com/JuliaDocs/MarkdownAST.jl/pull/32
 <!-- end of issue link definitions -->
 
 [markdownast]: https://github.com/JuliaDocs/MarkdownAST.jl

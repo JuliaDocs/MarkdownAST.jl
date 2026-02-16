@@ -81,6 +81,7 @@ List
 Paragraph
 SoftBreak
 Strong
+Strikethrough
 Text
 ThematicBreak
 ```

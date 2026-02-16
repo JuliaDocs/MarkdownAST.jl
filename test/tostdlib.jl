@@ -1,5 +1,5 @@
 using MarkdownAST: MarkdownAST, Node, @ast, Document,
-    Emph, Strong, InlineMath, Link, Code, Image,
+    Emph, Strong, Strikethrough, InlineMath, Link, Code, Image,
     Paragraph, Heading, CodeBlock, BlockQuote, DisplayMath, ThematicBreak,
     List, Item, FootnoteLink, FootnoteDefinition, Admonition,
     Table, TableHeader, TableBody, TableRow, TableCell,
@@ -89,6 +89,22 @@ struct UnknownBlock <: MarkdownAST.AbstractBlock end
         end
         md = convert(Markdown.MD, ast)
         @test ast == convert(Node, md)
+    end
+
+    let ast = @ast Document() do
+            Paragraph() do
+                "pre "
+                Strikethrough() do; "mid"; end
+                " post"
+            end
+        end
+        if isdefined(Markdown, :Strikethrough)
+            md = convert(Markdown.MD, ast)
+            @test md.content[1].content[2] isa Markdown.Strikethrough
+            @test convert(Node, md) == ast
+        else
+            @test_throws ErrorException convert(Markdown.MD, ast)
+        end
     end
 
     # JuliaValue
