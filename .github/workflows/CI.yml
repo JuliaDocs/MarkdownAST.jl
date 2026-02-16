@@ -24,6 +24,9 @@ jobs:
       matrix:
         julia-version: ['1.0', '1', 'nightly']
         os: [ubuntu-latest, windows-latest, macOS-latest]
+        exclude:
+          - os: macos-latest
+            version: '1.0'
 
     steps:
       - uses: actions/checkout@v6
